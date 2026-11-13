@@ -18,10 +18,16 @@ views:
             icon: mdi:sprout
           - type: tile
             entity: sensor.attic_hydroponics_air_temperature
-            name: Air temperature
+            name: Box temperature
           - type: tile
             entity: sensor.attic_hydroponics_humidity
-            name: Humidity
+            name: Box humidity
+          - type: tile
+            entity: sensor.attic_hydroponics_attic_temperature
+            name: Attic temperature
+          - type: tile
+            entity: sensor.attic_hydroponics_attic_humidity
+            name: Attic humidity
           - type: tile
             entity: sensor.attic_hydroponics_reservoir_level
             name: Reservoir level
@@ -43,10 +49,16 @@ views:
                 name: Collector
                 secondary_info: last-changed
               - entity: sensor.attic_hydroponics_air_temperature
-                name: Air temperature
+                name: Box temperature
                 secondary_info: last-updated
               - entity: sensor.attic_hydroponics_humidity
-                name: Humidity
+                name: Box humidity
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_attic_temperature
+                name: Attic temperature
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_attic_humidity
+                name: Attic humidity
                 secondary_info: last-updated
               - entity: sensor.attic_hydroponics_reservoir_level
                 name: Reservoir level
@@ -66,21 +78,25 @@ views:
             heading: History
             icon: mdi:chart-line
           - type: history-graph
-            title: Air temperature, last 24 hours
+            title: Temperature, box vs attic, last 24 hours
             hours_to_show: 24
             grid_options:
               columns: 12
             entities:
               - entity: sensor.attic_hydroponics_air_temperature
-                name: Air temperature
+                name: Box
+              - entity: sensor.attic_hydroponics_attic_temperature
+                name: Attic
           - type: history-graph
-            title: Humidity, last 24 hours
+            title: Humidity, box vs attic, last 24 hours
             hours_to_show: 24
             grid_options:
               columns: 12
             entities:
               - entity: sensor.attic_hydroponics_humidity
-                name: Humidity
+                name: Box
+              - entity: sensor.attic_hydroponics_attic_humidity
+                name: Attic
           - type: history-graph
             title: Reservoir level, last 7 days
             hours_to_show: 168
@@ -90,7 +106,7 @@ views:
               - entity: sensor.attic_hydroponics_reservoir_level
                 name: Reservoir level
           - type: statistics-graph
-            title: Air temperature, daily min / average / max (7 days)
+            title: Temperature, daily min / average / max (7 days)
             period: day
             days_to_show: 7
             chart_type: line
@@ -99,7 +115,9 @@ views:
               columns: 12
             entities:
               - entity: sensor.attic_hydroponics_air_temperature
-                name: Air temperature
+                name: Box
+              - entity: sensor.attic_hydroponics_attic_temperature
+                name: Attic
           - type: statistics-graph
             title: Humidity, daily min / average / max (7 days)
             period: day
@@ -110,4 +128,6 @@ views:
               columns: 12
             entities:
               - entity: sensor.attic_hydroponics_humidity
-                name: Humidity
+                name: Box
+              - entity: sensor.attic_hydroponics_attic_humidity
+                name: Attic

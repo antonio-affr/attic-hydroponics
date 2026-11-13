@@ -13,7 +13,7 @@ import yaml
 
 from collector.config import ConfigError, SensorSpec, parse_config
 from collector.sensors import SensorReadError, build_sensor
-from collector.sensors.grove import GroveSensor, Sht3x, crc8, decode
+from collector.sensors.grove import GroveSensor, MuxChannelTransport, Sht3x, Tca9548a, crc8, decode, shared_chip
 
 REAL_BYTES = bytes([0x63, 0x39, 0xB4, 0xAF, 0xDB, 0x09])
 PI_CONFIG = Path(__file__).resolve().parent.parent / "config" / "collector.pi.yaml"
@@ -105,6 +105,9 @@ def test_an_unplugged_sensor_gives_a_clear_error_and_is_not_cached():
         ({"model": "sht3x", "quantity": "pressure"}, "quantity"),
         ({"model": "dht22", "quantity": "temperature"}, "not supported"),
         ({"model": "sht3x", "quantity": "humidity", "address": "0x44"}, "whole number"),
+        ({"model": "sht3x", "quantity": "humidity", "mux_channel": 8}, "0 to 7"),
+        ({"model": "sht3x", "quantity": "humidity", "mux_channel": 6, "mux_address": 0x44}, "0x70 to 0x77"),
+        ({"model": "sht3x", "quantity": "humidity", "mux_address": 0x70}, "needs options.mux_channel"),
     ],
 )
 def test_config_mistakes_fail_at_startup(options, message):
@@ -113,11 +116,78 @@ def test_config_mistakes_fail_at_startup(options, message):
         GroveSensor(bad)
 
 
-def test_the_pi_config_builds_two_sensors_on_one_chip():
+def test_the_pi_config_builds_two_chips_behind_the_hub():
     raw = yaml.safe_load(PI_CONFIG.read_text(encoding="utf-8"))
     config = parse_config(raw, env={}, require_credentials=False)
     sensors = {s.key: build_sensor(s, config.interval_seconds, config.tz) for s in config.enabled_sensors}
-    temperature, humidity = sensors["air_temperature"], sensors["humidity"]
-    assert isinstance(temperature, GroveSensor) and isinstance(humidity, GroveSensor)
-    assert (temperature.quantity, humidity.quantity) == ("temperature", "humidity")
-    assert temperature.chip is humidity.chip
+    box_t, box_h = sensors["air_temperature"], sensors["humidity"]
+    attic_t, attic_h = sensors["attic_temperature"], sensors["attic_humidity"]
+    for sensor in (box_t, box_h, attic_t, attic_h):
+        assert isinstance(sensor, GroveSensor)
+    assert [s.quantity for s in (box_t, box_h, attic_t, attic_h)] == ["temperature", "humidity"] * 2
+    assert box_t.chip is box_h.chip and attic_t.chip is attic_h.chip
+    assert box_t.chip is not attic_t.chip
+    assert box_t.chip._transport._channel == 6 and attic_t.chip._transport._channel == 7
+
+
+# --- TCA9548A hub ---------------------------------------------------------------
+
+
+class Bus:
+    """One fake I2C bus: records the order of hub writes and sensor measurements."""
+
+    def __init__(self) -> None:
+        self.log: list[str] = []
+
+    def hub(self) -> "FakeHubWriter":
+        return FakeHubWriter(self)
+
+    def sensor(self, name: str, *responses: bytes | Exception) -> "LoggingTransport":
+        return LoggingTransport(self, name, *responses)
+
+
+class FakeHubWriter:
+    def __init__(self, bus: Bus) -> None:
+        self.bus = bus
+
+    def write(self, data: bytes) -> None:
+        self.bus.log.append(f"hub {data.hex()}")
+
+
+class LoggingTransport(FakeTransport):
+    def __init__(self, bus: Bus, name: str, *responses: bytes | Exception) -> None:
+        super().__init__(*responses)
+        self.bus, self.name = bus, name
+
+    def exchange(self, command: bytes, wait_seconds: float, read_length: int) -> bytes:
+        self.bus.log.append(f"measure {self.name}")
+        return super().exchange(command, wait_seconds, read_length)
+
+
+def test_the_hub_opens_the_right_channel_before_each_sensor_is_measured():
+    bus = Bus()
+    hub = Tca9548a(bus.hub())
+    box = Sht3x(MuxChannelTransport(hub, 6, bus.sensor("box", REAL_BYTES)), "box", clock=FakeClock())
+    attic = Sht3x(MuxChannelTransport(hub, 7, bus.sensor("attic", REAL_BYTES)), "attic", clock=FakeClock())
+    box.measure()
+    attic.measure()
+    assert bus.log == ["hub 40", "measure box", "hub 80", "measure attic"]  # 0x40 = 1 << 6, 0x80 = 1 << 7
+
+
+def test_a_hub_that_does_not_answer_is_reported_like_an_unplugged_sensor():
+    class DeadHub:
+        def write(self, data: bytes) -> None:
+            raise OSError(121, "Remote I/O error")
+
+    chip = Sht3x(MuxChannelTransport(Tca9548a(DeadHub()), 6, FakeTransport()), "hub test", sleep=lambda _: None)
+    with pytest.raises(SensorReadError, match="did not answer"):
+        chip.measure()
+
+
+def test_same_address_on_two_hub_channels_is_two_chips_and_one_hub():
+    box = shared_chip(1, 0x44, 0x70, 6)
+    attic = shared_chip(1, 0x44, 0x70, 7)
+    assert box is not attic
+    assert box is shared_chip(1, 0x44, 0x70, 6)
+    assert box._transport._mux is attic._transport._mux
+    assert shared_chip(1, 0x44) is not box  # without the hub: a different place on the bus

@@ -75,8 +75,9 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 ## Pi day (2026-11-13)
 
 - Pi 4 Model B, 8 GB, 32 GB SD card, Raspberry Pi OS 64-bit (Debian 12).
-- Sensor: Sensirion SHT3x (temperature and humidity) at I2C 0x44, read by a
-  driver with no extra library.
+- Sensors: two Sensirion SHT3x (temperature and humidity, both at I2C 0x44)
+  behind a TCA9548A hub (0x70): port 6 inside the box, port 7 in the attic
+  outside it, for comparison. Read by a driver with no extra library.
 - Mosquitto, Home Assistant and the collector run on the Pi, proven end to
   end with the simulator. Next: the real sensor through the collector.
 

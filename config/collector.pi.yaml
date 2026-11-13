@@ -18,7 +18,7 @@ mqtt:
 
 device:
   name: Attic Hydroponics
-  model: Raspberry Pi 4 + Grove SHT3x
+  model: Raspberry Pi 4 + 2 Grove SHT3x (TCA9548A hub)
 
 logging:
   level: INFO
@@ -27,6 +27,12 @@ logging:
   backup_count: 5
 
 overrides_file: runtime/overrides.json
+
+# Two identical SHT3x sensors (both at 0x44) behind a TCA9548A hub at 0x70.
+# The hub port decides which is which:
+#   port 6 -> inside the grow box   (air_temperature, humidity)
+#   port 7 -> attic, outside the box (attic_temperature, attic_humidity)
+# Found with the channel scan in docs/REAL_SENSORS.md, part 7.
 
 sensors:
   air_temperature:
@@ -40,7 +46,9 @@ sensors:
       model: sht3x
       quantity: temperature
       bus: 1                   # /dev/i2c-1
-      address: 0x44            # found with: i2cdetect -y 1
+      address: 0x44
+      mux_address: 0x70        # the hub (i2cdetect -y 1 shows 70)
+      mux_channel: 6           # inside the box
 
   humidity:
     type: grove
@@ -54,6 +62,38 @@ sensors:
       quantity: humidity
       bus: 1
       address: 0x44
+      mux_address: 0x70
+      mux_channel: 6
+
+  attic_temperature:
+    type: grove
+    name: Attic temperature
+    device_class: temperature
+    unit: "°C"
+    precision: 1
+    valid_range: [-10, 60]
+    options:
+      model: sht3x
+      quantity: temperature
+      bus: 1
+      address: 0x44
+      mux_address: 0x70
+      mux_channel: 7           # attic, outside the box
+
+  attic_humidity:
+    type: grove
+    name: Attic humidity
+    device_class: humidity
+    unit: "%"
+    precision: 1
+    valid_range: [0, 100]
+    options:                   # same chip as attic_temperature
+      model: sht3x
+      quantity: humidity
+      bus: 1
+      address: 0x44
+      mux_address: 0x70
+      mux_channel: 7
 
   # No hardware yet (Phase 2): stays simulated. Set enabled: false to hide it.
   reservoir_level:

@@ -17,7 +17,9 @@ All commands below run **on the Pi** (bash), unless marked otherwise.
 **This Pi (checked 2026-11-13):** Raspberry Pi 4 Model B, 8 GB, 32 GB SD card,
 Raspberry Pi OS 64-bit (Debian 12), user `tonypi`, hostname `tony-rpi`,
 Python 3.11. I2C was already enabled and the timezone already Europe/Lisbon.
-Sensor: Sensirion **SHT3x** at I2C address `0x44` on bus 1.
+Sensors: two Sensirion **SHT3x** (both at I2C address `0x44`) behind a
+**TCA9548A** 8-channel hub at `0x70` on bus 1: hub port 6 inside the box, port 7
+in the attic outside it.
 
 **Its address on the home Wi-Fi is not fixed.** It was `192.168.1.70`, then
 `192.168.1.198`. On the Pi, `hostname -I` shows the current one; from the
@@ -185,8 +187,36 @@ believable values; breathe on the sensor and humidity rises. A missing or
 broken sensor shows `reading rejected, not published: SHT3x ... did not answer`
 and HA marks it stale after 2.5 × the interval. That is the intended behaviour.
 
-The device in Home Assistant changes from "Simulator" to "Raspberry Pi 4 +
-Grove SHT3x" by itself. The same three entities and the dashboard stay.
+The device in Home Assistant changes from "Simulator" to the Pi model by
+itself. The entities and the dashboard stay.
+
+### Two sensors through the TCA9548A hub
+
+Two identical SHT3x boards both answer at `0x44`, so they cannot share the bus
+directly. The TCA9548A hub gives each one its own channel: it keeps all
+channels closed at power-up, and the driver opens the right one (one byte,
+`1 << channel`, sent to the hub at `0x70`) just before each measurement.
+
+Wiring: Pi → hub input; each sensor → one numbered hub port (`SD6/SC6` is
+port 6). Shut the Pi down before rewiring.
+
+1. `i2cdetect -y 1` now shows only `70` (the sensors are hidden behind the hub).
+2. Find which port each sensor is on (opens each channel, lists what answers,
+   then closes them all):
+
+   ```bash
+   for ch in 0 1 2 3 4 5 6 7; do i2cset -y 1 0x70 $((1<<ch)); printf "channel %s: " $ch; i2cdetect -y 1 | tail -n +2 | cut -c5- | tr -s ' ' '\n' | grep -vE '^(--|70|)$' | tr '\n' ' '; echo; done; i2cset -y 1 0x70 0x00
+   ```
+
+   On 2026-11-13: `channel 6: 44` and `channel 7: 44`.
+3. Each sensor in `config/collector.pi.yaml` names its port with
+   `mux_channel:` (and `mux_address: 0x70`). Port 6 is the box
+   (`air_temperature`, `humidity`), port 7 the attic (`attic_temperature`,
+   `attic_humidity`). Moving a sensor to another port means changing
+   `mux_channel` in its two entries and restarting the service.
+
+**Check:** the log shows all four values each cycle; breathing on the box
+sensor raises `humidity` but not `attic_humidity`.
 
 ## 8. Run it as a service (survives reboots and power cuts)
 

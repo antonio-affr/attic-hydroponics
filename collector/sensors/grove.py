@@ -23,6 +23,14 @@ Config (`options:` of a `type: grove` sensor in config/collector.pi.yaml):
     quantity: temperature   # or: humidity
     bus: 1                  # /dev/i2c-1, the Grove / GPIO header bus
     address: 0x44           # 0x45 if the board's address pad is changed
+    mux_channel: 6          # only behind a TCA9548A hub: the channel (0-7) it is plugged into
+    mux_address: 0x70       # the hub's own address (default 0x70)
+
+Behind a TCA9548A 8-channel I2C hub, several sensors can share the address 0x44,
+one per channel. The hub keeps every channel closed at power-up; before each
+measurement the driver opens the sensor's channel (one byte, 1 << channel, sent
+to the hub) and keeps the hub locked until the measurement is read, so two
+sensors can never answer at once.
 """
 
 from __future__ import annotations
@@ -41,6 +49,9 @@ MEASUREMENT_WAIT_SECONDS = 0.02  # datasheet maximum is 15.5 ms for high repeata
 SHARE_WINDOW_SECONDS = 5.0  # temperature and humidity of one cycle reuse one measurement
 ATTEMPTS = 2  # one quiet retry: a single glitch on a long cable should not cost a reading
 I2C_SLAVE = 0x0703  # Linux ioctl: "the next reads/writes on this file go to this address"
+
+MUX_CHANNELS = range(8)
+MUX_ADDRESSES = range(0x70, 0x78)  # set by the hub's A0-A2 pads
 
 QUANTITIES = ("temperature", "humidity")
 SUPPORTED_MODELS = ("sht3x",)
@@ -79,6 +90,10 @@ class I2CTransport(Protocol):
     def exchange(self, command: bytes, wait_seconds: float, read_length: int) -> bytes: ...
 
 
+class I2CWriter(Protocol):
+    def write(self, data: bytes) -> None: ...
+
+
 class LinuxI2C:
     """Raw I2C through /dev/i2c-N. Opened per measurement, so unplugging and replugging just works."""
 
@@ -87,17 +102,58 @@ class LinuxI2C:
         self.address = address
         self.path = f"/dev/i2c-{bus}"
 
-    def exchange(self, command: bytes, wait_seconds: float, read_length: int) -> bytes:
+    def _open(self) -> int:
         import fcntl  # Linux only; imported here so the rest of the module loads on Windows for tests
 
         fd = os.open(self.path, os.O_RDWR)
         try:
             fcntl.ioctl(fd, I2C_SLAVE, self.address)
+        except BaseException:
+            os.close(fd)
+            raise
+        return fd
+
+    def exchange(self, command: bytes, wait_seconds: float, read_length: int) -> bytes:
+        fd = self._open()
+        try:
             os.write(fd, command)
             time.sleep(wait_seconds)
             return os.read(fd, read_length)
         finally:
             os.close(fd)
+
+    def write(self, data: bytes) -> None:
+        fd = self._open()
+        try:
+            os.write(fd, data)
+        finally:
+            os.close(fd)
+
+
+class Tca9548a:
+    """The 8-channel I2C hub. One object per hub; its lock spans "open channel + measure"."""
+
+    def __init__(self, transport: I2CWriter) -> None:
+        self._transport = transport
+        self.lock = threading.Lock()
+
+    def select(self, channel: int) -> None:
+        """Open exactly one channel (the others close). Call with self.lock held."""
+        self._transport.write(bytes([1 << channel]))
+
+
+class MuxChannelTransport:
+    """A sensor's transport when it sits behind the hub: open its channel, then talk to it."""
+
+    def __init__(self, mux: Tca9548a, channel: int, inner: I2CTransport) -> None:
+        self._mux = mux
+        self._channel = channel
+        self._inner = inner
+
+    def exchange(self, command: bytes, wait_seconds: float, read_length: int) -> bytes:
+        with self._mux.lock:
+            self._mux.select(self._channel)
+            return self._inner.exchange(command, wait_seconds, read_length)
 
 
 class Sht3x:
@@ -142,17 +198,26 @@ class Sht3x:
             raise error
 
 
-_chips: dict[tuple[int, int], Sht3x] = {}
-_chips_lock = threading.Lock()
+_chips: dict[tuple[int, int, int | None, int | None], Sht3x] = {}
+_muxes: dict[tuple[int, int], Tca9548a] = {}
+_registry_lock = threading.Lock()
 
 
-def shared_chip(bus: int, address: int) -> Sht3x:
-    """The single Sht3x object for this bus and address, created on first use."""
-    with _chips_lock:
-        chip = _chips.get((bus, address))
+def shared_chip(bus: int, address: int, mux_address: int | None = None, mux_channel: int | None = None) -> Sht3x:
+    """The single Sht3x object for this place on the bus (hub channel included), created on first use."""
+    key = (bus, address, mux_address, mux_channel)
+    with _registry_lock:
+        chip = _chips.get(key)
         if chip is None:
-            chip = Sht3x(LinuxI2C(bus, address), f"0x{address:02x} on /dev/i2c-{bus}")
-            _chips[(bus, address)] = chip
+            transport: I2CTransport = LinuxI2C(bus, address)
+            description = f"0x{address:02x} on /dev/i2c-{bus}"
+            if mux_address is not None and mux_channel is not None:
+                mux = _muxes.get((bus, mux_address))
+                if mux is None:
+                    mux = _muxes[(bus, mux_address)] = Tca9548a(LinuxI2C(bus, mux_address))
+                transport = MuxChannelTransport(mux, mux_channel, transport)
+                description += f", channel {mux_channel} of the hub at 0x{mux_address:02x}"
+            chip = _chips[key] = Sht3x(transport, description)
         return chip
 
 
@@ -176,7 +241,18 @@ class GroveSensor(Sensor):
         self.quantity: str = quantity
         bus = _int_option(spec, "bus", 1)
         address = _int_option(spec, "address", 0x44)
-        self.chip = chip if chip is not None else shared_chip(bus, address)
+        mux_channel: int | None = None
+        mux_address: int | None = None
+        if "mux_channel" in options:
+            mux_channel = _int_option(spec, "mux_channel", 0)
+            if mux_channel not in MUX_CHANNELS:
+                raise ConfigError(f"Sensor '{spec.key}': options.mux_channel must be 0 to 7, got {mux_channel}")
+            mux_address = _int_option(spec, "mux_address", 0x70)
+            if mux_address not in MUX_ADDRESSES:
+                raise ConfigError(f"Sensor '{spec.key}': options.mux_address must be 0x70 to 0x77, got 0x{mux_address:02x}")
+        elif "mux_address" in options:
+            raise ConfigError(f"Sensor '{spec.key}': options.mux_address needs options.mux_channel (which hub channel?)")
+        self.chip = chip if chip is not None else shared_chip(bus, address, mux_address, mux_channel)
 
     def read(self) -> float:
         reading = self.chip.measure()
