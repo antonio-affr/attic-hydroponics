@@ -66,8 +66,14 @@ def test_the_pi_config_turns_the_camera_on_and_the_simulator_leaves_it_off():
 def test_the_command_is_the_one_tested_by_hand_on_the_pi():
     config = load("collector.pi.yaml")
     assert capture_command(config.camera, Path("x.jpg")) == [
-        "rpicam-still", "-n", "--autofocus-on-capture", "--width", "1920", "--height", "1080", "-o", "x.jpg"
+        "rpicam-still", "-n", "--autofocus-on-capture", "--width", "1920", "--height", "1080",
+        "--rotation", "180", "-o", "x.jpg",
     ]
+
+
+def test_without_rotation_the_flag_is_left_out():
+    config = load("collector.pi.yaml", camera={"enabled": True})
+    assert "--rotation" not in capture_command(config.camera, Path("x.jpg"))
 
 
 def test_a_photo_is_saved_by_date_and_published_retained(tmp_path):
@@ -124,6 +130,7 @@ def test_discovery_makes_a_camera_on_the_same_device():
         ({"enabled": True, "width": 0}, "camera.width"),
         ({"enabled": True, "keep_days": 0}, "camera.keep_days"),
         ({"enabled": True, "command": []}, "camera.command"),
+        ({"enabled": True, "rotation": 90}, "0 or 180"),
     ],
 )
 def test_camera_config_mistakes_fail_at_startup(camera, message):

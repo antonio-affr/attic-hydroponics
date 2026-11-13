@@ -121,3 +121,4 @@ camera:
   height: 1080
   keep_days: 7             # photos/<date>/ folders; about 45 MB a day
   photos_dir: photos
+  rotation: 180            # mounted upside down in the attic (2026-11-13); 0 = as is

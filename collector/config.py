@@ -79,6 +79,7 @@ class CameraConfig:
     command: tuple[str, ...] = ("rpicam-still",)
     photos_dir: str = "photos"
     keep_days: int = 7
+    rotation: int = 0  # 0 or 180: the camera can only turn its picture upside down
 
 
 @dataclass(frozen=True)
@@ -229,6 +230,9 @@ def _parse_camera(raw: Any) -> CameraConfig:
         if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
             raise ConfigError(f"camera.{name} must be a whole number of at least {minimum}, got {value!r}")
         whole[name] = value
+    rotation = raw.get("rotation", 0)
+    if rotation not in (0, 180) or isinstance(rotation, bool):
+        raise ConfigError(f"camera.rotation must be 0 or 180, got {rotation!r}")
     command = raw.get("command", "rpicam-still")
     command = (command,) if isinstance(command, str) else command
     if not command or not all(isinstance(part, str) and part for part in command):
@@ -238,6 +242,7 @@ def _parse_camera(raw: Any) -> CameraConfig:
         interval_seconds=interval,
         command=tuple(command),
         photos_dir=str(raw.get("photos_dir", "photos")),
+        rotation=rotation,
         **whole,
     )
 

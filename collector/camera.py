@@ -20,6 +20,7 @@ Config (`camera:` in config/collector.pi.yaml):
     height: 1080
     keep_days: 7              # about 45 MB a day at 1920x1080
     photos_dir: photos
+    rotation: 180             # 0 or 180: for a camera mounted upside down
     command: rpicam-still     # or a list of words, e.g. a test script
 """
 
@@ -47,7 +48,7 @@ class CameraError(RuntimeError):
 
 
 def capture_command(camera: CameraConfig, output: Path) -> list[str]:
-    return [
+    command = [
         *camera.command,
         "-n",  # no preview window: there is no screen
         "--autofocus-on-capture",
@@ -55,9 +56,10 @@ def capture_command(camera: CameraConfig, output: Path) -> list[str]:
         str(camera.width),
         "--height",
         str(camera.height),
-        "-o",
-        str(output),
     ]
+    if camera.rotation:
+        command += ["--rotation", str(camera.rotation)]  # the sensor flips the picture: no quality loss
+    return command + ["-o", str(output)]
 
 
 class Camera:
