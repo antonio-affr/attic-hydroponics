@@ -1,0 +1,113 @@
+# "Attic Hydroponics" dashboard. Version-controlled: edit here, then refresh the browser.
+# Entity ids come from MQTT Discovery: <device name>_<entity name>, e.g.
+# sensor.attic_hydroponics_air_temperature.
+
+title: Attic Hydroponics
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:sprout
+    type: sections
+    max_columns: 3
+    sections:
+      # --- Current values -------------------------------------------------
+      - type: grid
+        cards:
+          - type: heading
+            heading: Right now
+            icon: mdi:sprout
+          - type: tile
+            entity: sensor.attic_hydroponics_air_temperature
+            name: Air temperature
+          - type: tile
+            entity: sensor.attic_hydroponics_humidity
+            name: Humidity
+          - type: tile
+            entity: sensor.attic_hydroponics_reservoir_level
+            name: Reservoir level
+          - type: tile
+            entity: binary_sensor.attic_hydroponics_collector
+            name: Collector
+
+      # --- Status: online/offline and last update ---------------------------
+      - type: grid
+        cards:
+          - type: heading
+            heading: Status
+            icon: mdi:access-point-network
+          - type: entities
+            grid_options:
+              columns: full
+            entities:
+              - entity: binary_sensor.attic_hydroponics_collector
+                name: Collector
+                secondary_info: last-changed
+              - entity: sensor.attic_hydroponics_air_temperature
+                name: Air temperature
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_humidity
+                name: Humidity
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_reservoir_level
+                name: Reservoir level
+                secondary_info: last-updated
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              A sensor shows **Unavailable** when no reading arrived for 2.5 ×
+              the reading interval, or when the collector is disconnected.
+
+      # --- History ----------------------------------------------------------
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: History
+            icon: mdi:chart-line
+          - type: history-graph
+            title: Air temperature, last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.attic_hydroponics_air_temperature
+                name: Air temperature
+          - type: history-graph
+            title: Humidity, last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.attic_hydroponics_humidity
+                name: Humidity
+          - type: history-graph
+            title: Reservoir level, last 7 days
+            hours_to_show: 168
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.attic_hydroponics_reservoir_level
+                name: Reservoir level
+          - type: statistics-graph
+            title: Air temperature, daily min / average / max (7 days)
+            period: day
+            days_to_show: 7
+            chart_type: line
+            stat_types: [min, mean, max]
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.attic_hydroponics_air_temperature
+                name: Air temperature
+          - type: statistics-graph
+            title: Humidity, daily min / average / max (7 days)
+            period: day
+            days_to_show: 7
+            chart_type: line
+            stat_types: [min, mean, max]
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.attic_hydroponics_humidity
+                name: Humidity

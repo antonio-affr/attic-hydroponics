@@ -10,11 +10,11 @@ from datetime import datetime
 from typing import Callable, Iterable
 
 from collector.config import Config
-from collector.discovery import build_discovery_payload, build_state_payload
+from collector.discovery import build_discovery_payload, build_state_payload, build_status_discovery_payload
 from collector.overrides import active_overrides
 from collector.publisher import MqttPublisher
 from collector.sensors import Sensor, SensorReadError, build_sensor
-from collector.topics import discovery_topic, state_topic
+from collector.topics import STATUS_OBJECT_ID, discovery_topic, state_topic
 from collector.validation import InvalidReading, validate_value
 
 log = logging.getLogger(__name__)
@@ -39,7 +39,9 @@ class Collector:
             topic = discovery_topic(mqtt_cfg.discovery_prefix, mqtt_cfg.device_id, sensor.key)
             payload = build_discovery_payload(self.config, sensor.spec)
             self.publisher.publish(topic, json.dumps(payload), retain=True, qos=1)
-        log.info("Published discovery for %d sensors", len(self.sensors))
+        status_topic = discovery_topic(mqtt_cfg.discovery_prefix, mqtt_cfg.device_id, STATUS_OBJECT_ID, "binary_sensor")
+        self.publisher.publish(status_topic, json.dumps(build_status_discovery_payload(self.config)), retain=True, qos=1)
+        log.info("Published discovery for %d sensors + collector status", len(self.sensors))
 
     def collect_once(self) -> dict[str, float]:
         """Read, validate and publish every sensor once. Returns what was published."""

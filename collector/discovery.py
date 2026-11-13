@@ -7,7 +7,7 @@ from typing import Any
 
 from collector import __version__
 from collector.config import Config, SensorSpec
-from collector.topics import OFFLINE, ONLINE, availability_topic, state_topic
+from collector.topics import OFFLINE, ONLINE, STATUS_OBJECT_ID, availability_topic, state_topic
 
 
 def build_device(config: Config) -> dict[str, Any]:
@@ -46,6 +46,24 @@ def build_discovery_payload(config: Config, spec: SensorSpec) -> dict[str, Any]:
     if spec.icon:
         payload["icon"] = spec.icon
     return payload
+
+
+def build_status_discovery_payload(config: Config) -> dict[str, Any]:
+    """Discovery config for the "Collector" connectivity entity (online/offline).
+
+    It reads the availability topic directly, so it shows "Disconnected" (not
+    "unavailable") when the Last Will fires: something Home Assistant can alert on.
+    """
+    return {
+        "name": "Collector",
+        "unique_id": f"{config.mqtt.device_id}_{STATUS_OBJECT_ID}",
+        "state_topic": availability_topic(config.mqtt.base_topic),
+        "payload_on": ONLINE,
+        "payload_off": OFFLINE,
+        "device_class": "connectivity",
+        "device": build_device(config),
+        "origin": {"name": "attic-hydroponics-collector", "sw_version": __version__},
+    }
 
 
 def build_state_payload(value: float, timestamp: datetime, precision: int) -> dict[str, Any]:

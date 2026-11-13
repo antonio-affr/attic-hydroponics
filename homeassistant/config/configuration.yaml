@@ -14,6 +14,17 @@ homeassistant:
   currency: EUR
   language: en
 
+# Dashboards defined in YAML files (version-controlled). Changing this block needs a restart;
+# editing the dashboard file itself only needs a browser refresh.
+lovelace:
+  dashboards:
+    attic-hydroponics:
+      mode: yaml
+      title: Attic Hydroponics
+      icon: mdi:sprout
+      show_in_sidebar: true
+      filename: dashboards/attic_hydroponics.yaml
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
