@@ -31,8 +31,9 @@ services:
     depends_on:
       - mosquitto
 
-  # One-off helper: builds mosquitto/config/passwd from the users in .env.
-  # Not started by `docker compose up`; run it with:
+  # One-off helper: builds mosquitto/config/passwd from the users in .env and
+  # gives the broker its data and log folders. Not started by `docker compose up`;
+  # run it with:
   #   docker compose run --rm mosquitto-passwd
   mosquitto-passwd:
     image: eclipse-mosquitto:2.1.2-alpine
@@ -40,6 +41,8 @@ services:
     env_file: .env
     volumes:
       - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
     entrypoint: ["/bin/sh", "-c"]
     # $$ makes Compose pass "$" through, so the shell in the container
     # reads the variables from .env instead of Compose substituting them.
@@ -55,4 +58,8 @@ services:
         # file, then make it private to that user.
         chown 1883:1883 "$$f"
         chmod 0700 "$$f"
+        # On Linux the broker must also own the folders it writes to (on the Pi a
+        # fresh clone leaves them to the login user, and Mosquitto then stops with
+        # "Unable to open log file"). Docker Desktop on Windows ignores owners.
+        chown -R 1883:1883 /mosquitto/data /mosquitto/log
         echo "Password file written with users: $$MQTT_HA_USER, $$MQTT_COLLECTOR_USER"

@@ -14,6 +14,16 @@ What changes compared with Windows:
 
 All commands below run **on the Pi** (bash), unless marked otherwise.
 
+**This Pi (checked 2026-11-13):** Raspberry Pi 4 Model B, 8 GB, 32 GB SD card,
+Raspberry Pi OS 64-bit (Debian 12), user `tonypi`, hostname `tony-rpi`,
+Python 3.11. I2C was already enabled and the timezone already Europe/Lisbon.
+Sensor: Sensirion **SHT3x** at I2C address `0x44` on bus 1.
+
+**Its address on the home Wi-Fi is not fixed.** It was `192.168.1.70`, then
+`192.168.1.198`. On the Pi, `hostname -I` shows the current one; from the
+laptop, the router's device list does too. A DHCP reservation in the router
+fixes it; on 4G only the Tailscale name matters (part 9).
+
 ---
 
 ## 0. Questions to answer first
@@ -102,6 +112,11 @@ docker compose up -d
 docker compose ps
 ```
 
+The helper also hands `mosquitto/data` and `mosquitto/log` to the broker's user
+(uid 1883). On the Pi a fresh clone leaves them to `tonypi`, and Mosquitto then
+stops with `Unable to open log file ... for writing`. If you ever see that
+error, run the helper again and `docker compose restart mosquitto`.
+
 **Check:** both services `Up`; `docker compose logs mosquitto` ends with
 `mosquitto version ... running`.
 
@@ -114,7 +129,10 @@ Never forward port 8123 or 1883 on any router.
 
 Same clicks as on Windows, from a laptop or phone on the same network as the Pi:
 
-1. Open `http://<pi-address>:8123` (at home: `http://192.168.1.70:8123`).
+1. Open `http://<pi-address>:8123` (at home: `http://192.168.1.198:8123`).
+   This is a new Home Assistant: the account, the MQTT connection and the
+   history are not in git (they hold secrets), so they are created again here.
+   The name, units and dashboard come from git.
 2. **Create my smart home** → account → location → analytics → Finish.
 3. **Settings → Devices & services → + Add integration → MQTT**
    - Broker `mosquitto`, port `1883`, username `homeassistant`,
@@ -135,17 +153,28 @@ python3 -m venv .venv
 **Check:** the **Attic Hydroponics** device appears in HA with three sensors,
 and the **Attic Hydroponics** dashboard in the sidebar fills in. Stop with Ctrl+C.
 
-## 7. The real Grove sensor
+## 7. The real Grove sensor (SHT3x)
 
-1. Find the sensor on the I2C bus: `i2cdetect -y 1` (note the address, e.g. `0x44`).
-2. Run the existing script once on its own and confirm it prints sensible values.
-3. Fill in `collector/sensors/grove.py` (the TODO list at the top of the file
-   explains exactly what to do), and put the sensor settings in the `options:`
-   block of `config/collector.pi.yaml`.
-4. Add the sensor's Python library to `requirements.txt` and reinstall
-   (`.venv/bin/pip install -r requirements.txt`). If it needs the hardware
-   group, the Pi user must be in `i2c` (`groups` shows it).
-5. Try it with a short interval:
+The driver is `collector/sensors/grove.py`. It needs no extra library: it talks
+to `/dev/i2c-1` directly, the same way as the manual test below. Temperature and
+humidity come from one chip, read once per cycle.
+
+1. Find the sensor on the I2C bus: `i2cdetect -y 1`. The SHT3x shows as `44`
+   (or `45` if the board's address pad was changed; then set `address: 0x45`
+   in both sensors of `config/collector.pi.yaml`).
+2. Optional manual reading, which also tells the chip family apart:
+
+   ```bash
+   i2ctransfer -y 1 w2@0x44 0x24 0x00 && sleep 0.05 && i2ctransfer -y 1 r6@0x44   # SHT3x: 6 bytes
+   i2ctransfer -y 1 w1@0x44 0xFD && sleep 0.05 && i2ctransfer -y 1 r6@0x44        # SHT4x: 6 bytes
+   ```
+
+   On 2026-11-13 the first returned `0x63 0x39 0xb4 0xaf 0xdb 0x09` (22.8 °C,
+   68.7 %, valid checksums) and the second an I/O error: an SHT3x. Those bytes
+   are now a test (`tests/test_grove.py`).
+3. The user must be in the `i2c` group (`groups` shows it; it is by default
+   on Raspberry Pi OS).
+4. Try it with a short interval:
 
 ```bash
 .venv/bin/python -m collector run --config config/collector.pi.yaml --interval 30
@@ -153,8 +182,11 @@ and the **Attic Hydroponics** dashboard in the sidebar fills in. Stop with Ctrl+
 
 **Check:** the log shows `Published air_temperature=..., humidity=...` with
 believable values; breathe on the sensor and humidity rises. A missing or
-broken sensor shows `reading rejected, not published` and HA marks it stale
-after 2.5 × the interval. That is the intended behaviour.
+broken sensor shows `reading rejected, not published: SHT3x ... did not answer`
+and HA marks it stale after 2.5 × the interval. That is the intended behaviour.
+
+The device in Home Assistant changes from "Simulator" to "Raspberry Pi 4 +
+Grove SHT3x" by itself. The same three entities and the dashboard stay.
 
 ## 8. Run it as a service (survives reboots and power cuts)
 
@@ -178,7 +210,7 @@ systemctl status attic-collector
 ## 9. Phone access
 
 **At home (setup day):** phone on the same Wi-Fi as the Pi, open
-`http://192.168.1.70:8123`, or install the **Home Assistant** app and enter
+`http://192.168.1.198:8123`, or install the **Home Assistant** app and enter
 that address. Nothing else is needed.
 
 **From anywhere (the Pi on 4G in the attic): Tailscale.**

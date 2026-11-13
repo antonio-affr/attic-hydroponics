@@ -66,15 +66,21 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 - Done: Mosquitto with auth, Home Assistant with MQTT, simulator collector with
   discovery, Last Will and stale detection, "Collector" connectivity entity,
   YAML dashboard. Versions pinned: Mosquitto 2.1.2-alpine, HA 2026.11.1.
-- Postponed by choice: alerts, automated tests.
+- Postponed by choice: alerts, and tests beyond the sensor driver.
 - Phone access from the work laptop is blocked by its VPN; it is done on the
   Pi instead (home Wi-Fi, then Tailscale). See docs/REAL_SENSORS.md.
 - Code lives in the private repo github.com/antonio-affr/attic-hydroponics,
   committed with the personal identity only.
 
-## Open questions for the Pi day
+## Pi day (2026-11-13)
 
-- Pi model, RAM, storage (SD card or SSD)?
-- Exact Grove sensor models, and cable length from the Pi into the box?
-- The existing Python script that reads the sensors?
-- How the 4G modem shows up on the Pi?
+- Pi 4 Model B, 8 GB, 32 GB SD card, Raspberry Pi OS 64-bit (Debian 12).
+- Sensor: Sensirion SHT3x (temperature and humidity) at I2C 0x44, read by a
+  driver with no extra library.
+- Mosquitto, Home Assistant and the collector run on the Pi, proven end to
+  end with the simulator. Next: the real sensor through the collector.
+
+Still open:
+
+- Cable length from the Pi into the box.
+- How the 4G modem shows up on the Pi, and its signal in the attic.

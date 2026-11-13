@@ -63,7 +63,18 @@ The **Attic Hydroponics** device and dashboard then appear by themselves.
 
 A sensor shows **Unavailable** in Home Assistant after `interval × 2.5` without
 a reading (75 s on the simulator, 12.5 min on the Pi), or immediately when the
-collector disconnects.
+collector disconnects. When Home Assistant (re)starts, the collector resends
+its latest readings a few seconds later, so the sensors do not stay
+Unavailable until the next cycle.
+
+## Tests
+
+```powershell
+.venv\Scripts\python -m pytest
+```
+
+They need no hardware and no broker: the SHT3x driver is tested against the
+real bytes the attic sensor returned, through a fake I2C bus.
 
 ## Project layout
 
@@ -87,4 +98,4 @@ docs/REAL_SENSORS.md        Pi and Grove sensor guide
 ## Not done yet
 
 - Alerts (thresholds as editable helpers, self-clearing notifications).
-- Automated tests (`pytest` is installed; the tests are still to be written).
+- Tests for the rest of the collector (so far: the SHT3x driver and the resend).

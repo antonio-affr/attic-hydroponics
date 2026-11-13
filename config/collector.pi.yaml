@@ -18,7 +18,7 @@ mqtt:
 
 device:
   name: Attic Hydroponics
-  model: Raspberry Pi + Grove
+  model: Raspberry Pi 4 + Grove SHT3x
 
 logging:
   level: INFO
@@ -30,13 +30,17 @@ overrides_file: runtime/overrides.json
 
 sensors:
   air_temperature:
-    type: grove                # TODO (Pi day): implement collector/sensors/grove.py
+    type: grove                # Sensirion SHT3x, see collector/sensors/grove.py
     name: Air temperature
     device_class: temperature
     unit: "°C"
     precision: 1
     valid_range: [-10, 60]
-    options: {}                # sensor model, I2C address / port: filled in on the Pi day
+    options:
+      model: sht3x
+      quantity: temperature
+      bus: 1                   # /dev/i2c-1
+      address: 0x44            # found with: i2cdetect -y 1
 
   humidity:
     type: grove
@@ -45,7 +49,11 @@ sensors:
     unit: "%"
     precision: 1
     valid_range: [0, 100]
-    options: {}
+    options:                   # same chip as air_temperature: read once per cycle
+      model: sht3x
+      quantity: humidity
+      bus: 1
+      address: 0x44
 
   # No hardware yet (Phase 2): stays simulated. Set enabled: false to hide it.
   reservoir_level:
