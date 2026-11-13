@@ -67,8 +67,9 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
   discovery, Last Will and stale detection, "Collector" connectivity entity,
   YAML dashboard. Versions pinned: Mosquitto 2.1.2-alpine, HA 2026.11.1.
 - Postponed by choice: alerts, and tests beyond the sensor driver.
-- Phone access from the work laptop is blocked by its VPN; it is done on the
-  Pi instead (home Wi-Fi, then Tailscale). See docs/REAL_SENSORS.md.
+- Remote access is Tailscale only (personal account): the Pi, the phone, and
+  since 2026-11-13 the laptop too (by choice, to SSH into the Pi in the
+  attic). See docs/REAL_SENSORS.md, part 9.
 - Code lives in the private repo github.com/antonio-affr/attic-hydroponics,
   committed with the personal identity only.
 
