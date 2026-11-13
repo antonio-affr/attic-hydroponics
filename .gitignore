@@ -1,0 +1,39 @@
+# Secrets
+.env
+mosquitto/config/passwd
+
+# Mosquitto runtime data and logs
+mosquitto/data/*
+mosquitto/log/*
+!mosquitto/data/.gitkeep
+!mosquitto/log/.gitkeep
+
+# Home Assistant runtime state (database, logs, UI-created state, secrets)
+homeassistant/config/.storage/
+homeassistant/config/home-assistant_v2.db*
+homeassistant/config/*.log*
+homeassistant/config/secrets.yaml
+homeassistant/config/.HA_VERSION
+homeassistant/config/.cloud/
+homeassistant/config/deps/
+homeassistant/config/tts/
+homeassistant/config/.cache/
+homeassistant/config/.ha_run.lock
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Collector logs and generated sample data
+/logs/
+*.log
+/data/
+/runtime/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

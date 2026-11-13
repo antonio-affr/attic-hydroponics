@@ -1,0 +1,64 @@
+# Collector configuration: RASPBERRY PI profile (real Grove sensors).
+# Credentials are NOT here: they come from .env (MQTT_COLLECTOR_USER / MQTT_COLLECTOR_PASSWORD).
+
+timezone: Europe/Lisbon
+
+# Default 5 minutes. Lower it (e.g. 60) here or with --interval; stale
+# detection follows automatically: 300 s x 2.5 = 750 s (12.5 minutes).
+interval_seconds: 300
+stale_after_factor: 2.5
+
+mqtt:
+  host: localhost          # broker on the same Pi; override with MQTT_HOST
+  port: 1883
+  client_id: attic-hydro-collector
+  discovery_prefix: homeassistant
+  base_topic: attic/hydroponics
+  device_id: attic_hydro
+
+device:
+  name: Attic Hydroponics
+  model: Raspberry Pi + Grove
+
+logging:
+  level: INFO
+  file: logs/collector.log
+  max_bytes: 1000000
+  backup_count: 5
+
+overrides_file: runtime/overrides.json
+
+sensors:
+  air_temperature:
+    type: grove                # TODO (Pi day): implement collector/sensors/grove.py
+    name: Air temperature
+    device_class: temperature
+    unit: "°C"
+    precision: 1
+    valid_range: [-10, 60]
+    options: {}                # sensor model, I2C address / port: filled in on the Pi day
+
+  humidity:
+    type: grove
+    name: Humidity
+    device_class: humidity
+    unit: "%"
+    precision: 1
+    valid_range: [0, 100]
+    options: {}
+
+  # No hardware yet (Phase 2): stays simulated. Set enabled: false to hide it.
+  reservoir_level:
+    type: simulated
+    enabled: true
+    name: Reservoir level
+    unit: "%"
+    icon: mdi:water-percent
+    precision: 0
+    valid_range: [0, 100]
+    options:
+      start: 80.0
+      drain_per_hour: 1.5
+      refill_below: 30.0
+      refill_to: 95.0
+      noise: 0.2

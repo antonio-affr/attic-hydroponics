@@ -1,0 +1,19 @@
+# Home Assistant main configuration for attic hydroponics.
+# Version-controlled. Location (latitude/longitude) is set in the UI during
+# onboarding and stored in .storage/, which is git-ignored.
+
+# Loads the default set of integrations (history, logbook, mobile app, ...). Do not remove.
+default_config:
+
+homeassistant:
+  name: Attic Hydroponics
+  time_zone: Europe/Lisbon
+  unit_system: metric
+  temperature_unit: C
+  country: PT
+  currency: EUR
+  language: en
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml

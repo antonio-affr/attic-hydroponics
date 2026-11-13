@@ -1,0 +1,9 @@
+[project]
+name = "attic-hydroponics-collector"
+version = "0.1.0"
+description = "Reads attic hydroponics sensors and publishes them to Home Assistant over MQTT."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

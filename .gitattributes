@@ -1,0 +1,4 @@
+# Store text files with Linux line endings so configs and scripts work unchanged on the Pi.
+* text=auto eol=lf
+*.png binary
+*.jpg binary

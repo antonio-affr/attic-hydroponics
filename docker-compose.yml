@@ -1,0 +1,58 @@
+name: attic-hydroponics
+
+services:
+  # MQTT broker: every reading passes through here.
+  mosquitto:
+    # Pinned to the version tested on 2026-11-13. Upgrade deliberately.
+    image: eclipse-mosquitto:2.1.2-alpine
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Lisbon}
+    ports:
+      # Only reachable from this machine by default (see MQTT_BIND_ADDRESS in .env).
+      - "${MQTT_BIND_ADDRESS:-127.0.0.1}:1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  # Home Assistant: dashboard, history, alerts. Reaches the broker as "mosquitto".
+  homeassistant:
+    # Pinned to the version tested on 2026-11-13. Upgrade deliberately.
+    image: homeassistant/home-assistant:2026.11.1
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Lisbon}
+    ports:
+      # Only reachable from this machine by default (see HA_BIND_ADDRESS in .env).
+      - "${HA_BIND_ADDRESS:-127.0.0.1}:8123:8123"
+    volumes:
+      - ./homeassistant/config:/config
+    depends_on:
+      - mosquitto
+
+  # One-off helper: builds mosquitto/config/passwd from the users in .env.
+  # Not started by `docker compose up`; run it with:
+  #   docker compose run --rm mosquitto-passwd
+  mosquitto-passwd:
+    image: eclipse-mosquitto:2.1.2-alpine
+    profiles: ["setup"]
+    env_file: .env
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+    entrypoint: ["/bin/sh", "-c"]
+    # $$ makes Compose pass "$" through, so the shell in the container
+    # reads the variables from .env instead of Compose substituting them.
+    command:
+      - |
+        set -e
+        f=/mosquitto/config/passwd
+        # Start from a clean file: mosquitto_passwd -c refuses to overwrite one.
+        rm -f "$$f"
+        mosquitto_passwd -b -c "$$f" "$$MQTT_HA_USER" "$$MQTT_HA_PASSWORD"
+        mosquitto_passwd -b "$$f" "$$MQTT_COLLECTOR_USER" "$$MQTT_COLLECTOR_PASSWORD"
+        # The broker runs as user "mosquitto" (uid 1883), not root: give it the
+        # file, then make it private to that user.
+        chown 1883:1883 "$$f"
+        chmod 0700 "$$f"
+        echo "Password file written with users: $$MQTT_HA_USER, $$MQTT_COLLECTOR_USER"

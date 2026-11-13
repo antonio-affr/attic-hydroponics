@@ -1,0 +1,79 @@
+# Collector configuration: SIMULATOR profile (Windows rehearsal).
+# Credentials are NOT here: they come from .env (MQTT_COLLECTOR_USER / MQTT_COLLECTOR_PASSWORD).
+
+timezone: Europe/Lisbon
+
+# How often every sensor is read and published. Override with --interval.
+interval_seconds: 30
+
+# A sensor is considered stale (Home Assistant shows "unavailable") when no
+# reading arrives for interval_seconds x stale_after_factor. 30 s -> 75 s.
+stale_after_factor: 2.5
+
+mqtt:
+  host: localhost          # override with MQTT_HOST
+  port: 1883               # override with MQTT_PORT
+  client_id: attic-hydro-collector
+  discovery_prefix: homeassistant
+  base_topic: attic/hydroponics
+  device_id: attic_hydro
+
+device:
+  name: Attic Hydroponics
+  model: Simulator
+
+logging:
+  level: INFO
+  file: logs/collector.log
+  max_bytes: 1000000
+  backup_count: 5
+
+# Forced test values written by `python -m collector force ...`.
+overrides_file: runtime/overrides.json
+
+sensors:
+  air_temperature:
+    type: simulated
+    name: Air temperature
+    device_class: temperature
+    unit: "°C"
+    precision: 1
+    valid_range: [-10, 60]     # anything outside is a broken reading
+    options:
+      mean: 23.0               # average temperature
+      daily_amplitude: 3.0     # +/- 3 °C over the day
+      peak_hour: 15            # warmest at 15:00
+      noise: 0.15              # random wobble per reading
+      reversion: 0.05          # how fast it is pulled back to the daily curve
+      spike_probability: 0.0   # chance per reading of a one-off spike (0 = never)
+      spike_size: 8.0
+
+  humidity:
+    type: simulated
+    name: Humidity
+    device_class: humidity
+    unit: "%"
+    precision: 1
+    valid_range: [0, 100]
+    options:
+      mean: 62.0
+      daily_amplitude: -6.0    # drier when it is warmer
+      peak_hour: 15
+      noise: 0.5
+      reversion: 0.05
+      spike_probability: 0.0
+      spike_size: 15.0
+
+  reservoir_level:
+    type: simulated
+    name: Reservoir level
+    unit: "%"
+    icon: mdi:water-percent
+    precision: 0
+    valid_range: [0, 100]
+    options:
+      start: 80.0
+      drain_per_hour: 1.5      # plants drink it slowly
+      refill_below: 30.0       # simulated top-up, so it never triggers the low-water alert by itself
+      refill_to: 95.0
+      noise: 0.2

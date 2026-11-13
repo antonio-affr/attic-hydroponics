@@ -1,0 +1,5 @@
+# Runtime dependencies of the collector (pinned, versions current on 2026-11-13).
+paho-mqtt==2.2.0
+PyYAML==6.0.3
+# Timezone database: Windows has none built in; harmless on the Pi.
+tzdata==2026.6
