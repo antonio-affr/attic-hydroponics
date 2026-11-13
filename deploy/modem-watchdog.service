@@ -1,0 +1,19 @@
+# One run of the 4G modem watchdog (tools/modem_watchdog.py). Started by modem-watchdog.timer.
+#
+# Install (paths assume user "tonypi" and the repo in ~/attic-hydroponics):
+#   sudo cp deploy/modem-watchdog.service deploy/modem-watchdog.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now modem-watchdog.timer
+# Check:  systemctl list-timers modem-watchdog     Logs:  journalctl -u modem-watchdog
+
+[Unit]
+Description=4G modem watchdog (reconnect or restart the modem when the internet drops)
+
+[Service]
+Type=oneshot
+User=tonypi
+# systemd creates /var/lib/modem-watchdog for the state file and passes it as $STATE_DIRECTORY.
+StateDirectory=modem-watchdog
+ExecStart=/usr/bin/python3 /home/tonypi/attic-hydroponics/tools/modem_watchdog.py
+Environment=PYTHONUNBUFFERED=1
+TimeoutStartSec=120

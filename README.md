@@ -88,7 +88,8 @@ mosquitto/config/           broker settings; passwd is generated and git-ignored
 homeassistant/config/       configuration.yaml, dashboards/ (runtime state is git-ignored)
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
 config/                     collector profiles: simulator (30 s) and pi (5 min)
-deploy/                     systemd service for the Pi
+deploy/                     systemd units for the Pi: collector service, 4G modem watchdog
+tools/modem_watchdog.py     reconnects (or restarts) the 4G modem when the internet drops
 docs/REAL_SENSORS.md        Pi and Grove sensor guide
 ```
 

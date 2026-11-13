@@ -284,6 +284,104 @@ as the server address.
 
 **Check:** with the phone on mobile data (Wi-Fi off), the dashboard loads.
 
+**Tailscale on this Pi (2026-11-13):** tailnet on the personal GitHub login,
+`tony-rpi` = `100.80.188.65`. In the admin page (tony-rpi → ⋯) choose
+**Disable key expiry**, otherwise the Pi logs itself out after about 6 months
+with nobody there to log it back in. Another person's phone joins through
+**Share** on the same menu: they install Tailscale with their own account and
+accept the invitation; they then see only this Pi.
+
+## 9b. The 4G modem (ZTE MF833N)
+
+It shows up as the network interface `eth1` (`192.168.0.x`, gateway and web
+page at `192.168.0.1`). Its route wins over the Wi-Fi's, so **when the modem
+loses 4G the whole Pi loses the internet, even with Wi-Fi on**. A sign of that:
+every name resolves to `192.168.50.x` (the modem answers for everything).
+
+**Status** (no login needed, the `Referer` header is):
+
+```bash
+curl -s -H "Referer: http://192.168.0.1/index.html" "http://192.168.0.1/goform/goform_get_cmd_process?isTest=false&multi_data=1&cmd=ppp_status,signalbar,network_type,network_provider"; echo
+```
+
+`ppp_connected` is online; `ppp_disconnected` is not. On 2026-11-13: no PIN,
+DIGI PT, LTE, 5 bars, connection mode Automatic (`auto_dial`). Even so it
+dropped once and did not reconnect by itself. This brought it back at once:
+
+```bash
+curl -s -H "Referer: http://192.168.0.1/index.html" -d "isTest=false&goformId=CONNECT_NETWORK" http://192.168.0.1/goform/goform_set_cmd_process; echo
+```
+
+The modem's own web page, from the laptop (PowerShell), through the Pi:
+`ssh -L 8080:192.168.0.1:80 tonypi@<pi-address>`, then open
+`http://localhost:8080`.
+
+### MTU 1440 (needed for Tailscale over 4G)
+
+The mobile network silently drops packets bigger than about 1460 bytes. Small
+things (ping, curl) work; Tailscale's large first message never arrives, so
+Tailscale stays offline on 4G only. Measure it (1460 passes, 1470 does not):
+
+```bash
+for size in 1472 1442 1432 1412; do ping -c 1 -W 3 -M do -s $size -I eth1 8.8.8.8 >/dev/null && echo "$((size+28)) ok" || echo "$((size+28)) dropped"; done
+```
+
+Fix, kept across reboots by NetworkManager:
+
+```bash
+CONN=$(nmcli -t -f NAME,DEVICE connection show --active | awk -F: '$2=="eth1"{print $1}')
+sudo nmcli connection modify "$CONN" ethernet.mtu 1440
+sudo nmcli connection up "$CONN"
+```
+
+**Check:** `ip link show eth1 | grep -o 'mtu [0-9]*'` prints `mtu 1440`, also after a reboot.
+
+### The watchdog (reconnects the modem by itself)
+
+`tools/modem_watchdog.py`, run every 2 minutes by a systemd timer, through
+`eth1` only:
+
+1. internet works → nothing (no log);
+2. no internet and the modem says `ppp_disconnected` → `CONNECT_NETWORK`,
+   test again 20 s later;
+3. still nothing for 3 runs in a row (about 6 minutes) → restart the modem
+   (`REBOOT_DEVICE`), at most once every 30 minutes.
+
+No modem plugged in → it does nothing. It needs only the system `python3`.
+
+```bash
+sudo cp deploy/modem-watchdog.service deploy/modem-watchdog.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now modem-watchdog.timer
+```
+
+**Check** (at home, so SSH stays up over Wi-Fi): drop the connection on
+purpose, run the watchdog once, read what it did:
+
+```bash
+curl -s -H "Referer: http://192.168.0.1/index.html" -d "isTest=false&goformId=DISCONNECT_NETWORK" http://192.168.0.1/goform/goform_set_cmd_process; echo
+sudo systemctl start modem-watchdog.service
+journalctl -u modem-watchdog -n 10 --no-pager
+```
+
+It should log `No internet ... modem says ppp_disconnected`, then
+`Reconnected`. `systemctl list-timers modem-watchdog` shows the next run.
+
+### Testing "4G only" at home without locking yourself out
+
+Turning Wi-Fi off is remembered across reboots, and without Wi-Fi only
+Tailscale over 4G reaches the Pi. Schedule the undo **first**:
+
+```bash
+sudo systemd-run --unit=wifi-back-on --on-active=10min /usr/bin/nmcli radio wifi on
+sudo nmcli radio wifi off
+```
+
+Wi-Fi comes back by itself after 10 minutes (`systemctl list-timers` shows the
+countdown). Do not shut down or reboot during the test: the undo exists only
+while the Pi runs. Use another unit name (`wifi-back-on-2`) for a second test
+the same day.
+
 ## 10. Day-to-day
 
 | Task | Command (on the Pi, in `~/attic-hydroponics`) |
@@ -294,6 +392,9 @@ as the server address.
 | Remove forced values | `.venv/bin/python -m collector clear --config config/collector.pi.yaml` |
 | Collector logs | `journalctl -u attic-collector -f` or `logs/collector.log` |
 | Broker / HA logs | `docker compose logs -f mosquitto` / `homeassistant` |
+| 4G modem status | the `curl` in part 9b, or `python3 tools/modem_watchdog.py --status` |
+| Watchdog log | `journalctl -u modem-watchdog -n 20` (only writes when something is wrong) |
+| Photos | `ls photos/` (one folder per day, kept 7 days) |
 | Watch raw MQTT | `docker compose exec mosquitto mosquitto_sub -u homeassistant -P '<MQTT_HA_PASSWORD>' -t 'attic/#' -v` |
 
 Upgrading Mosquitto or Home Assistant is deliberate: change the pinned tag in

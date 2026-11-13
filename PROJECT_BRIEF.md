@@ -89,4 +89,8 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 Still open:
 
 - Cable length from the Pi into the box.
-- How the 4G modem shows up on the Pi, and its signal in the attic.
+- The 4G signal at the attic spot (5 bars LTE at the desk).
+
+Learned about the 4G modem: it is `eth1`, needs MTU 1440 for Tailscale, and
+can drop without reconnecting by itself; a watchdog (every 2 minutes)
+reconnects it, or restarts it. Details in docs/REAL_SENSORS.md, part 9b.
