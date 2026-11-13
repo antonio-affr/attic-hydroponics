@@ -1,0 +1,29 @@
+# systemd service for the attic hydroponics collector (Raspberry Pi).
+#
+# Install (paths assume user "tonypi" and the repo in ~/attic-hydroponics; adjust if different):
+#   sudo cp deploy/attic-collector.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now attic-collector
+# Check:  systemctl status attic-collector     Logs:  journalctl -u attic-collector -f
+
+[Unit]
+Description=Attic hydroponics collector (sensors -> MQTT)
+Wants=network-online.target
+After=network-online.target docker.service
+# Never give up restarting, however often it fails (e.g. broker still booting).
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=tonypi
+WorkingDirectory=/home/tonypi/attic-hydroponics
+ExecStart=/home/tonypi/attic-hydroponics/.venv/bin/python -m collector run --config config/collector.pi.yaml
+# SIGTERM -> the collector publishes "offline" and disconnects cleanly.
+KillSignal=SIGTERM
+TimeoutStopSec=15
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

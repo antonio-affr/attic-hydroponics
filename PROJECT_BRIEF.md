@@ -61,6 +61,17 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 - State: `attic/hydroponics/<sensor>/state`
 - Availability: `attic/hydroponics/status` (Last Will: `offline`)
 
+## Status (2026-11-13, end of the Windows rehearsal)
+
+- Done: Mosquitto with auth, Home Assistant with MQTT, simulator collector with
+  discovery, Last Will and stale detection, "Collector" connectivity entity,
+  YAML dashboard. Versions pinned: Mosquitto 2.1.2-alpine, HA 2026.11.1.
+- Postponed by choice: alerts, automated tests.
+- Phone access from the work laptop is blocked by its VPN; it is done on the
+  Pi instead (home Wi-Fi, then Tailscale). See docs/REAL_SENSORS.md.
+- Code lives in the private repo github.com/antonio-affr/attic-hydroponics,
+  committed with the personal identity only.
+
 ## Open questions for the Pi day
 
 - Pi model, RAM, storage (SD card or SSD)?
