@@ -28,3 +28,25 @@ lovelace:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+# Vapour pressure deficit (VPD) in the box, in kPa: how strongly the air pulls
+# water out of the leaves. Computed from the box sensor (hub port 6):
+#   saturation vapour pressure (Tetens) = 0.61078 * e^(17.27 T / (T + 237.3)) kPa
+#   VPD = saturation pressure * (1 - RH / 100)
+# This is the AIR VPD. Leaves are usually 1-2 °C cooler than the air, so the
+# leaf VPD is a little lower. Changing this block needs a Home Assistant restart.
+template:
+  - sensor:
+      - name: Box VPD
+        unique_id: attic_hydro_box_vpd
+        unit_of_measurement: kPa
+        device_class: pressure
+        state_class: measurement
+        icon: mdi:water-thermometer
+        availability: >-
+          {{ has_value('sensor.attic_hydroponics_air_temperature')
+             and has_value('sensor.attic_hydroponics_humidity') }}
+        state: >-
+          {% set t = states('sensor.attic_hydroponics_air_temperature') | float %}
+          {% set rh = states('sensor.attic_hydroponics_humidity') | float %}
+          {{ (0.61078 * e ** (17.27 * t / (t + 237.3)) * (1 - rh / 100)) | round(2) }}

@@ -9,6 +9,8 @@ Sensors -> Python collector -> Mosquitto (MQTT) -> Home Assistant -> dashboard, 
 
 - **Mosquitto** (Docker): the message broker. Password-protected, port 1883.
 - **Home Assistant** (Docker): dashboard and history, at port 8123.
+  It also computes the box **VPD** (vapour pressure deficit, kPa) from the box
+  temperature and humidity: a template sensor in `homeassistant/config/configuration.yaml`.
 - **Collector** (Python): reads the sensors, validates the values and publishes
   them with MQTT Discovery, so the sensors appear in Home Assistant by themselves.
 

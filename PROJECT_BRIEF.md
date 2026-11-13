@@ -78,6 +78,9 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 - Sensors: two Sensirion SHT3x (temperature and humidity, both at I2C 0x44)
   behind a TCA9548A hub (0x70): port 6 inside the box, port 7 in the attic
   outside it, for comparison. Read by a driver with no extra library.
+- Box VPD (kPa) is computed in Home Assistant from the box sensor (template
+  sensor `sensor.box_vpd`), with the usual targets per growth stage on the
+  dashboard.
 - Mosquitto, Home Assistant and the collector run on the Pi, proven end to
   end with the simulator. Next: the real sensor through the collector.
 

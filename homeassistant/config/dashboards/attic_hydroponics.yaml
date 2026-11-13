@@ -23,6 +23,9 @@ views:
             entity: sensor.attic_hydroponics_humidity
             name: Box humidity
           - type: tile
+            entity: sensor.box_vpd
+            name: Box VPD
+          - type: tile
             entity: sensor.attic_hydroponics_attic_temperature
             name: Attic temperature
           - type: tile
@@ -97,6 +100,24 @@ views:
                 name: Box
               - entity: sensor.attic_hydroponics_attic_humidity
                 name: Attic
+          - type: history-graph
+            title: Box VPD (kPa), last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.box_vpd
+                name: VPD
+          - type: markdown
+            grid_options:
+              columns: 12
+            content: >-
+              **VPD** (vapour pressure deficit) is how strongly the air pulls
+              water from the leaves, computed from the box temperature and
+              humidity. Usual targets: seedlings and clones **0.4 to 0.8 kPa**,
+              vegetative growth **0.8 to 1.2 kPa**, flowering **1.2 to 1.6 kPa**.
+              Too low: slow growth and mould risk. Too high: the plants close up
+              and stress. Lower it by raising humidity or lowering temperature.
           - type: history-graph
             title: Reservoir level, last 7 days
             hours_to_show: 168
