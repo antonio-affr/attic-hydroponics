@@ -367,6 +367,11 @@ journalctl -u modem-watchdog -n 10 --no-pager
 It should log `No internet ... modem says ppp_disconnected`, then
 `Reconnected`. `systemctl list-timers modem-watchdog` shows the next run.
 
+Both modem commands were tried on this modem on 2026-11-13: the reconnect
+above, and the restart (`goformId=REBOOT_DEVICE`): about 1 to 2 minutes
+offline, the provider shows as `26802` (DIGI's raw network code) while it
+registers, then it reconnects by itself and `eth1` keeps MTU 1440.
+
 ### Testing "4G only" at home without locking yourself out
 
 Turning Wi-Fi off is remembered across reboots, and without Wi-Fi only
