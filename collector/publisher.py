@@ -54,7 +54,7 @@ class MqttPublisher:
         """Wait until connected AND discovery has been sent, so no reading beats its discovery."""
         return self._ready.wait(timeout)
 
-    def publish(self, topic: str, payload: str, retain: bool = False, qos: int = 0) -> bool:
+    def publish(self, topic: str, payload: str | bytes, retain: bool = False, qos: int = 0) -> bool:
         if not self.connected:
             log.warning("Not connected to the broker, skipping publish to %s", topic)
             return False

@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from typing import Callable, Iterable
 
+from collector.camera import Camera
 from collector.config import Config
 from collector.discovery import build_discovery_payload, build_state_payload, build_status_discovery_payload
 from collector.overrides import active_overrides
@@ -24,6 +25,8 @@ log = logging.getLogger(__name__)
 # without this, a brand-new or just-restarted Home Assistant shows "Unavailable"
 # until the next reading, which on the Pi is up to 5 minutes away.
 RESEND_DELAY_SECONDS = 3.0
+# On exit, give a photo in progress this long to finish before disconnecting.
+CAMERA_STOP_TIMEOUT_SECONDS = 15.0
 
 
 class Collector:
@@ -113,12 +116,17 @@ class Collector:
 
 def run_forever(collector: Collector, interval_seconds: float, stop: threading.Event) -> None:
     """Call collect_once every interval until `stop` is set. Never raises."""
+    repeat(collector.collect_once, interval_seconds, stop, "collection cycle")
+
+
+def repeat(action: Callable[[], object], interval_seconds: float, stop: threading.Event, what: str) -> None:
+    """Call `action` every interval until `stop` is set. Never raises."""
     next_run = time.monotonic()
     while not stop.is_set():
         try:
-            collector.collect_once()
+            action()
         except Exception:
-            log.exception("Unexpected error in collection cycle")
+            log.exception("Unexpected error in %s", what)
         next_run += interval_seconds
         if next_run < time.monotonic():  # fell behind (e.g. laptop asleep): restart the schedule
             next_run = time.monotonic()
@@ -134,7 +142,14 @@ def run(config: Config, stop: threading.Event) -> None:
     sensors = [build_sensor(spec, config.interval_seconds, config.tz) for spec in config.enabled_sensors]
     publisher = MqttPublisher(config.mqtt)
     collector = Collector(config, sensors, publisher)
-    publisher.on_connected = collector.publish_discovery
+    camera = Camera(config, publisher) if config.camera.enabled else None
+
+    def on_connected() -> None:
+        collector.publish_discovery()
+        if camera is not None:
+            camera.publish_discovery()
+
+    publisher.on_connected = on_connected
 
     log.info(
         "Starting collector: %d sensors (%s), every %ss, stale after %ss",
@@ -146,9 +161,19 @@ def run(config: Config, stop: threading.Event) -> None:
     publisher.start()
     if not publisher.wait_until_connected(timeout=15):
         log.warning("Broker not reachable yet; will keep retrying in the background")
+    camera_thread: threading.Thread | None = None
+    if camera is not None:
+        log.info("Camera on: one photo every %ss, kept %d days in %s/", f"{config.camera.interval_seconds:g}",
+                 config.camera.keep_days, config.camera.photos_dir)
+        camera_thread = threading.Thread(
+            target=repeat, args=(camera.snapshot, config.camera.interval_seconds, stop, "camera"), name="camera", daemon=True
+        )
+        camera_thread.start()
     try:
         run_forever(collector, config.interval_seconds, stop)
     finally:
+        if camera_thread is not None:
+            camera_thread.join(timeout=CAMERA_STOP_TIMEOUT_SECONDS)
         collector.close()
         publisher.stop()
         log.info("Collector stopped")

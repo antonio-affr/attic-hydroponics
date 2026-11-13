@@ -61,6 +61,7 @@ The **Attic Hydroponics** device and dashboard then appear by themselves.
 | Discovery (retained) | `homeassistant/sensor/attic_hydro/<sensor>/config` |
 | Collector status discovery (retained) | `homeassistant/binary_sensor/attic_hydro/collector_status/config` |
 | Readings | `attic/hydroponics/<sensor>/state`, JSON `{"value": 23.4, "timestamp": "2026-11-13T01:35:25+00:00"}` |
+| Camera photo (retained, Pi only) | `attic/hydroponics/camera/image` (JPEG), `attic/hydroponics/camera/info` (JSON) |
 | Availability (retained, Last Will) | `attic/hydroponics/status`: `online` / `offline` |
 
 A sensor shows **Unavailable** in Home Assistant after `interval × 2.5` without
@@ -85,7 +86,7 @@ docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
 homeassistant/config/       configuration.yaml, dashboards/ (runtime state is git-ignored)
-collector/                  the Python collector (config, sensors/, publisher, main loop)
+collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
 config/                     collector profiles: simulator (30 s) and pi (5 min)
 deploy/                     systemd service for the Pi
 docs/REAL_SENSORS.md        Pi and Grove sensor guide

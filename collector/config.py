@@ -69,6 +69,19 @@ class SensorSpec:
 
 
 @dataclass(frozen=True)
+class CameraConfig:
+    """Optional `camera:` section. Off unless `enabled: true`."""
+
+    enabled: bool = False
+    interval_seconds: float = 600
+    width: int = 1920
+    height: int = 1080
+    command: tuple[str, ...] = ("rpicam-still",)
+    photos_dir: str = "photos"
+    keep_days: int = 7
+
+
+@dataclass(frozen=True)
 class Config:
     timezone: str
     interval_seconds: float
@@ -78,6 +91,7 @@ class Config:
     logging: LoggingConfig
     overrides_file: str
     sensors: tuple[SensorSpec, ...]
+    camera: CameraConfig = CameraConfig()
 
     @property
     def tz(self) -> ZoneInfo:
@@ -196,6 +210,35 @@ def parse_config(
         logging=logging_cfg,
         overrides_file=str(raw.get("overrides_file", "runtime/overrides.json")),
         sensors=sensors,
+        camera=_parse_camera(raw.get("camera") or {}),
+    )
+
+
+def _parse_camera(raw: Any) -> CameraConfig:
+    if not isinstance(raw, Mapping):
+        raise ConfigError("camera must be a mapping of settings")
+    enabled = raw.get("enabled", False)
+    if not isinstance(enabled, bool):
+        raise ConfigError(f"camera.enabled must be true or false, got {enabled!r}")
+    interval = _number(raw.get("interval_seconds", 600), "camera.interval_seconds")
+    if interval < 10:
+        raise ConfigError("camera.interval_seconds must be at least 10")
+    whole = {}
+    for name, default, minimum in (("width", 1920, 64), ("height", 1080, 64), ("keep_days", 7, 1)):
+        value = raw.get(name, default)
+        if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+            raise ConfigError(f"camera.{name} must be a whole number of at least {minimum}, got {value!r}")
+        whole[name] = value
+    command = raw.get("command", "rpicam-still")
+    command = (command,) if isinstance(command, str) else command
+    if not command or not all(isinstance(part, str) and part for part in command):
+        raise ConfigError("camera.command must be a program name or a list of words")
+    return CameraConfig(
+        enabled=enabled,
+        interval_seconds=interval,
+        command=tuple(command),
+        photos_dir=str(raw.get("photos_dir", "photos")),
+        **whole,
     )
 
 

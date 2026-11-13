@@ -110,3 +110,14 @@ sensors:
       refill_below: 30.0
       refill_to: 95.0
       noise: 0.2
+
+# Raspberry Pi Camera Module 3 NoIR on the CAMERA ribbon connector.
+# NoIR = no infrared filter: colours look pinkish in daylight and under grow
+# lights; that is expected. See collector/camera.py.
+camera:
+  enabled: true
+  interval_seconds: 600    # one photo every 10 minutes
+  width: 1920
+  height: 1080
+  keep_days: 7             # photos/<date>/ folders; about 45 MB a day
+  photos_dir: photos

@@ -218,6 +218,32 @@ port 6). Shut the Pi down before rewiring.
 **Check:** the log shows all four values each cycle; breathing on the box
 sensor raises `humidity` but not `attic_humidity`.
 
+## 7b. The camera (Camera Module 3 NoIR)
+
+The collector takes a photo every 10 minutes (`camera:` in
+`config/collector.pi.yaml`), keeps it in `photos/<date>/` for 7 days (about
+45 MB a day) and sends it to Home Assistant, which shows it on the dashboard.
+The photo goes from the camera to Home Assistant inside the Pi; mobile data is
+used only when someone opens the dashboard.
+
+1. Shut the Pi down, then plug the ribbon into the **CAMERA** connector (between
+   the micro-HDMI ports and the audio jack): lift the latch, silver contacts
+   facing the HDMI ports, push it fully in, close the latch. At the camera end
+   the contacts face the camera board.
+2. Boot, then: `rpicam-hello --list-cameras` lists `imx708_noir`.
+   `No cameras available!` means the ribbon is loose or reversed at one of
+   the two ends (on 2026-11-13, reseating both ends fixed it). The `WARN ...
+   No static properties available for 'imx708_noir'` lines are harmless.
+3. Test photo: `rpicam-still -n --autofocus-on-capture --width 1920 --height 1080 -o ~/test.jpg`;
+   copy it to the laptop with `scp tonypi@<pi-address>:test.jpg .` (PowerShell).
+
+NoIR means no infrared filter: colours look pinkish in daylight and under grow
+lights. In exchange it can see in the dark with an infrared lamp.
+
+**Check:** the collector log shows `Camera: photo photos/<date>/<time>.jpg (... KB)`
+and the dashboard's **Camera** card shows it. A camera problem only logs a
+warning: the sensors keep running.
+
 ## 8. Run it as a service (survives reboots and power cuts)
 
 Edit `User=` and the paths in `deploy/attic-collector.service` if the user is

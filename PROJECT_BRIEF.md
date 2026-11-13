@@ -81,6 +81,8 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 - Box VPD (kPa) is computed in Home Assistant from the box sensor (template
   sensor `sensor.box_vpd`), with the usual targets per growth stage on the
   dashboard.
+- Camera Module 3 NoIR: a photo every 10 minutes, kept 7 days on the SD
+  card and shown in Home Assistant (MQTT camera). Outside the box for now.
 - Mosquitto, Home Assistant and the collector run on the Pi, proven end to
   end with the simulator. Next: the real sensor through the collector.
 

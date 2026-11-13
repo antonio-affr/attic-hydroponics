@@ -31,6 +31,7 @@ __pycache__/
 *.log
 /data/
 /runtime/
+/photos/
 
 # Editors / OS
 .vscode/

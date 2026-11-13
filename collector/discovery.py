@@ -7,7 +7,16 @@ from typing import Any
 
 from collector import __version__
 from collector.config import Config, SensorSpec
-from collector.topics import OFFLINE, ONLINE, STATUS_OBJECT_ID, availability_topic, state_topic
+from collector.topics import (
+    CAMERA_OBJECT_ID,
+    OFFLINE,
+    ONLINE,
+    STATUS_OBJECT_ID,
+    availability_topic,
+    camera_image_topic,
+    camera_info_topic,
+    state_topic,
+)
 
 
 def build_device(config: Config) -> dict[str, Any]:
@@ -61,6 +70,21 @@ def build_status_discovery_payload(config: Config) -> dict[str, Any]:
         "payload_on": ONLINE,
         "payload_off": OFFLINE,
         "device_class": "connectivity",
+        "device": build_device(config),
+        "origin": {"name": "attic-hydroponics-collector", "sw_version": __version__},
+    }
+
+
+def build_camera_discovery_payload(config: Config) -> dict[str, Any]:
+    """Discovery config for the camera: Home Assistant shows the latest JPEG on the image topic."""
+    return {
+        "name": "Camera",
+        "unique_id": f"{config.mqtt.device_id}_{CAMERA_OBJECT_ID}",
+        "topic": camera_image_topic(config.mqtt.base_topic),
+        "json_attributes_topic": camera_info_topic(config.mqtt.base_topic),
+        "availability_topic": availability_topic(config.mqtt.base_topic),
+        "payload_available": ONLINE,
+        "payload_not_available": OFFLINE,
         "device": build_device(config),
         "origin": {"name": "attic-hydroponics-collector", "sw_version": __version__},
     }

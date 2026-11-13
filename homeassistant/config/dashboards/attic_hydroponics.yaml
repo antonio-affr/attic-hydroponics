@@ -38,6 +38,27 @@ views:
             entity: binary_sensor.attic_hydroponics_collector
             name: Collector
 
+      # --- Camera: the latest photo (one every 10 minutes) --------------------
+      - type: grid
+        cards:
+          - type: heading
+            heading: Camera
+            icon: mdi:camera
+          - type: picture-entity
+            entity: camera.attic_hydroponics_camera
+            camera_view: auto
+            show_name: false
+            show_state: false
+            grid_options:
+              columns: full
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              {% set ts = state_attr('camera.attic_hydroponics_camera', 'timestamp') %}
+              Last photo: **{{ as_timestamp(ts) | timestamp_custom('%d %b, %H:%M') if ts else 'none yet' }}**.
+              NoIR camera: pinkish colours are normal.
+
       # --- Status: online/offline and last update ---------------------------
       - type: grid
         cards:
