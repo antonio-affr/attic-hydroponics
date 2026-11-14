@@ -11,6 +11,7 @@ Sensors -> Python collector -> Mosquitto (MQTT) -> Home Assistant -> dashboard, 
 - **Home Assistant** (Docker): dashboard and history, at port 8123.
   It also computes the box **VPD** (vapour pressure deficit, kPa) from the box
   temperature and humidity: a template sensor in `homeassistant/config/configuration.yaml`.
+  And it sends the **alerts** to the phone app (see below).
 - **Collector** (Python): reads the sensors, validates the values and publishes
   them with MQTT Discovery, so the sensors appear in Home Assistant by themselves.
 
@@ -70,6 +71,30 @@ collector disconnects. When Home Assistant (re)starts, the collector resends
 its latest readings a few seconds later, so the sensors do not stay
 Unavailable until the next cycle.
 
+## Alerts
+
+`homeassistant/config/packages/attic_alerts.yaml` sends a phone notification
+(Home Assistant Companion app) when:
+
+| Alert | When |
+|---|---|
+| Box temperature, humidity, VPD | out of range for "Alert after" minutes (default 10) |
+| Collector | offline, or the box sensor sends nothing, for the same time |
+| Camera | no new photo for 40 minutes, plus the same time |
+
+- One notification when a problem starts, one when it has been gone for 5
+  minutes (it replaces the first on the phone). Never one per reading, and a
+  Home Assistant restart neither repeats nor forgets them.
+- Thresholds are helpers, editable in the dashboard's **Alerts** section.
+  Defaults: 18 to 28 °C, 40 to 75 %, 0.4 to 1.6 kPa. A "Back to the default
+  thresholds" button resets them.
+- Phones: the `phones` list in that file (`mobile_app_<phone>`, as listed in
+  Settings → Tools → Actions). On Android the alerts use their own
+  notification category, **Attic alerts**, which can be allowed through Do Not
+  Disturb.
+- They come from the Pi itself: if the Pi has no power or no internet, no
+  alert can reach the phone.
+
 ## Tests
 
 ```powershell
@@ -85,7 +110,7 @@ real bytes the attic sensor returned, through a fake I2C bus.
 docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/ (runtime state is git-ignored)
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts); runtime state is git-ignored
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
 config/                     collector profiles: simulator (30 s) and pi (5 min)
 deploy/                     systemd units for the Pi: collector service, 4G modem watchdog
@@ -101,5 +126,4 @@ docs/REAL_SENSORS.md        Pi and Grove sensor guide
 
 ## Not done yet
 
-- Alerts (thresholds as editable helpers, self-clearing notifications).
 - Tests for the rest of the collector (so far: the SHT3x driver and the resend).

@@ -66,7 +66,10 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 - Done: Mosquitto with auth, Home Assistant with MQTT, simulator collector with
   discovery, Last Will and stale detection, "Collector" connectivity entity,
   YAML dashboard. Versions pinned: Mosquitto 2.1.2-alpine, HA 2026.11.1.
-- Postponed by choice: alerts, and tests beyond the sensor driver.
+- Postponed by choice: tests beyond the sensor driver.
+- Alerts (2026-11-14): phone notifications from Home Assistant for box
+  temperature, humidity and VPD out of range, collector offline and a stale
+  camera; thresholds editable in the app (README, "Alerts").
 - Remote access is Tailscale only (personal account): the Pi, the phone, and
   since 2026-11-13 the laptop too (by choice, to SSH into the Pi in the
   attic). See docs/REAL_SENSORS.md, part 9.

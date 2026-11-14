@@ -13,6 +13,8 @@ homeassistant:
   country: PT
   currency: EUR
   language: en
+  # One file per feature in packages/ (e.g. attic_alerts.yaml). Needs a restart.
+  packages: !include_dir_named packages
 
 # Dashboards defined in YAML files (version-controlled). Changing this block needs a restart;
 # editing the dashboard file itself only needs a browser refresh.

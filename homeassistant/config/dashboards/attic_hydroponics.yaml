@@ -94,6 +94,68 @@ views:
               A sensor shows **Unavailable** when no reading arrived for 2.5 ×
               the reading interval, or when the collector is disconnected.
 
+      # --- Alerts: current state and editable thresholds (packages/attic_alerts.yaml)
+      - type: grid
+        cards:
+          - type: heading
+            heading: Alerts
+            icon: mdi:bell-alert
+          - type: entities
+            grid_options:
+              columns: full
+            entities:
+              - entity: binary_sensor.box_temperature_alert
+                name: Box temperature
+                secondary_info: last-changed
+              - entity: binary_sensor.box_humidity_alert
+                name: Box humidity
+                secondary_info: last-changed
+              - entity: binary_sensor.box_vpd_alert
+                name: Box VPD
+                secondary_info: last-changed
+              - entity: binary_sensor.collector_alert
+                name: Collector
+                secondary_info: last-changed
+              - entity: binary_sensor.camera_alert
+                name: Camera
+                secondary_info: last-changed
+          - type: entities
+            title: Thresholds (tap a value to change it)
+            grid_options:
+              columns: full
+            entities:
+              - entity: input_number.attic_alert_temperature_min
+                name: Temperature, alert below
+              - entity: input_number.attic_alert_temperature_max
+                name: Temperature, alert above
+              - entity: input_number.attic_alert_humidity_min
+                name: Humidity, alert below
+              - entity: input_number.attic_alert_humidity_max
+                name: Humidity, alert above
+              - entity: input_number.attic_alert_vpd_min
+                name: VPD, alert below
+              - entity: input_number.attic_alert_vpd_max
+                name: VPD, alert above
+              - entity: input_number.attic_alert_delay_minutes
+                name: Alert after (minutes)
+              - type: button
+                name: Back to the default thresholds
+                icon: mdi:restore
+                action_name: Reset
+                tap_action:
+                  action: perform-action
+                  perform_action: script.attic_alerts_default_thresholds
+                  confirmation:
+                    text: Set every threshold back to its default?
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              A notification is sent when a value stays out of range for the
+              "alert after" time, and again when it is back (5 minutes in
+              range). To get alerts during Do Not Disturb, allow the phone's
+              **Attic alerts** notification category through it.
+
       # --- History ----------------------------------------------------------
       - type: grid
         column_span: 3

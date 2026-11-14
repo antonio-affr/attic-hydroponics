@@ -1,0 +1,315 @@
+# Alerts for the grow box: a phone notification when something is wrong, and
+# one more when it is back to normal (it replaces the first on the phone).
+#
+#   Box temperature, humidity, VPD  out of range for "Alert after" minutes
+#   Collector                       offline, or the box sensor sends nothing
+#   Camera                          no new photo for 40 minutes
+#
+# Every threshold is a helper you can change in the app (dashboard, "Alerts"
+# section): no restart, no file to edit. A notification is sent when a problem
+# starts and when it clears, never on every reading. A problem only counts as
+# cleared after 5 minutes back in range, so a value hovering on the limit does
+# not send a stream of notifications.
+#
+# Phones that get the alerts: the `phones` list in the automation below
+# (notify action names without "notify.", see Settings > Tools > Actions).
+#
+# Loaded as a package (configuration.yaml: homeassistant > packages). Changing
+# this file needs a Home Assistant restart.
+
+input_number:
+  attic_alert_temperature_min:
+    name: "Box temperature: alert below"
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-low
+    mode: box
+  attic_alert_temperature_max:
+    name: "Box temperature: alert above"
+    min: 15
+    max: 45
+    step: 0.5
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-high
+    mode: box
+  attic_alert_humidity_min:
+    name: "Box humidity: alert below"
+    min: 10
+    max: 80
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:water-percent
+    mode: box
+  attic_alert_humidity_max:
+    name: "Box humidity: alert above"
+    min: 40
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:water-percent-alert
+    mode: box
+  attic_alert_vpd_min:
+    name: "Box VPD: alert below"
+    min: 0.1
+    max: 2
+    step: 0.05
+    unit_of_measurement: kPa
+    icon: mdi:water-thermometer-outline
+    mode: box
+  attic_alert_vpd_max:
+    name: "Box VPD: alert above"
+    min: 0.4
+    max: 3
+    step: 0.05
+    unit_of_measurement: kPa
+    icon: mdi:water-thermometer
+    mode: box
+  attic_alert_delay_minutes:
+    name: "Alert after (minutes out of range)"
+    min: 1
+    max: 60
+    step: 1
+    unit_of_measurement: min
+    icon: mdi:timer-sand
+    mode: box
+
+# Which alerts have been notified and not yet cleared (kept across restarts).
+input_text:
+  attic_alerts_sent:
+    name: Attic alerts sent
+    max: 255
+    icon: mdi:bell-check
+
+script:
+  # The defaults live here only. Run it from the dashboard to go back to them.
+  # With only_unset: true it fills in just the helpers never set (see the
+  # automation "fill in default thresholds" below).
+  attic_alerts_default_thresholds:
+    alias: "Attic alerts: default thresholds"
+    icon: mdi:restore
+    mode: single
+    fields:
+      only_unset:
+        description: Only fill in helpers still at the bottom of their range (never set).
+        default: false
+        selector:
+          boolean:
+    sequence:
+      - repeat:
+          for_each:
+            - { entity: input_number.attic_alert_temperature_min, value: 18 }
+            - { entity: input_number.attic_alert_temperature_max, value: 28 }
+            - { entity: input_number.attic_alert_humidity_min, value: 40 }
+            - { entity: input_number.attic_alert_humidity_max, value: 75 }
+            - { entity: input_number.attic_alert_vpd_min, value: 0.4 }
+            - { entity: input_number.attic_alert_vpd_max, value: 1.6 }
+            - { entity: input_number.attic_alert_delay_minutes, value: 10 }
+          sequence:
+            - if:
+                - condition: template
+                  value_template: >-
+                    {{ not (only_unset | default(false))
+                       or states(repeat.item.entity) | float(0)
+                          == state_attr(repeat.item.entity, 'min') | float(0) }}
+              then:
+                - action: input_number.set_value
+                  target:
+                    entity_id: "{{ repeat.item.entity }}"
+                  data:
+                    value: "{{ repeat.item.value }}"
+
+template:
+  - binary_sensor:
+      # "on" = out of range right now (the automation below waits before
+      # notifying). The `detail` attribute is the sentence the notification uses.
+      - name: Box temperature alert
+        unique_id: attic_hydro_alert_box_temperature
+        device_class: problem
+        icon: mdi:thermometer-alert
+        availability: "{{ has_value('sensor.attic_hydroponics_air_temperature') }}"
+        state: >-
+          {% set v = states('sensor.attic_hydroponics_air_temperature') | float %}
+          {{ v < states('input_number.attic_alert_temperature_min') | float(18)
+             or v > states('input_number.attic_alert_temperature_max') | float(28) }}
+        attributes:
+          detail: >-
+            {% set v = states('sensor.attic_hydroponics_air_temperature') | float(0) %}
+            {% set lo = states('input_number.attic_alert_temperature_min') | float(18) %}
+            {% set hi = states('input_number.attic_alert_temperature_max') | float(28) %}
+            {% if v > hi %}Too hot: {{ v }} °C (alert above {{ hi }} °C).
+            {% elif v < lo %}Too cold: {{ v }} °C (alert below {{ lo }} °C).
+            {% else %}Back to {{ v }} °C (range {{ lo }} to {{ hi }} °C).{% endif %}
+
+      - name: Box humidity alert
+        unique_id: attic_hydro_alert_box_humidity
+        device_class: problem
+        icon: mdi:water-alert
+        availability: "{{ has_value('sensor.attic_hydroponics_humidity') }}"
+        state: >-
+          {% set v = states('sensor.attic_hydroponics_humidity') | float %}
+          {{ v < states('input_number.attic_alert_humidity_min') | float(40)
+             or v > states('input_number.attic_alert_humidity_max') | float(75) }}
+        attributes:
+          detail: >-
+            {% set v = states('sensor.attic_hydroponics_humidity') | float(0) %}
+            {% set lo = states('input_number.attic_alert_humidity_min') | float(40) %}
+            {% set hi = states('input_number.attic_alert_humidity_max') | float(75) %}
+            {% if v > hi %}Too humid: {{ v }} % (alert above {{ hi }} %). Mould risk.
+            {% elif v < lo %}Too dry: {{ v }} % (alert below {{ lo }} %).
+            {% else %}Back to {{ v }} % (range {{ lo }} to {{ hi }} %).{% endif %}
+
+      - name: Box VPD alert
+        unique_id: attic_hydro_alert_box_vpd
+        device_class: problem
+        icon: mdi:leaf-off
+        availability: "{{ has_value('sensor.box_vpd') }}"
+        state: >-
+          {% set v = states('sensor.box_vpd') | float %}
+          {{ v < states('input_number.attic_alert_vpd_min') | float(0.4)
+             or v > states('input_number.attic_alert_vpd_max') | float(1.6) }}
+        attributes:
+          detail: >-
+            {% set v = states('sensor.box_vpd') | float(0) %}
+            {% set lo = states('input_number.attic_alert_vpd_min') | float(0.4) %}
+            {% set hi = states('input_number.attic_alert_vpd_max') | float(1.6) %}
+            {% if v > hi %}VPD too high: {{ v }} kPa (alert above {{ hi }}). The air is too dry for the plants: raise humidity or lower temperature.
+            {% elif v < lo %}VPD too low: {{ v }} kPa (alert below {{ lo }}). The air is too damp: lower humidity or raise temperature.
+            {% else %}VPD back to {{ v }} kPa (range {{ lo }} to {{ hi }}).{% endif %}
+
+      # Readings stop: the collector is offline, or it runs but the box sensor
+      # sends nothing (its values turn Unavailable after 2.5 reading intervals).
+      - name: Collector alert
+        unique_id: attic_hydro_alert_collector
+        device_class: problem
+        icon: mdi:lan-disconnect
+        state: >-
+          {{ not is_state('binary_sensor.attic_hydroponics_collector', 'on')
+             or not has_value('sensor.attic_hydroponics_air_temperature')
+             or not has_value('sensor.attic_hydroponics_humidity') }}
+        attributes:
+          detail: >-
+            {% if not is_state('binary_sensor.attic_hydroponics_collector', 'on') %}The collector is offline: no readings reach Home Assistant.
+            {% elif not (has_value('sensor.attic_hydroponics_air_temperature') and has_value('sensor.attic_hydroponics_humidity')) %}The collector runs, but the box sensor sends no readings (cable or hub?).
+            {% else %}Readings are arriving again.{% endif %}
+
+      # The camera takes a photo every 10 minutes; 40 minutes without one is a problem.
+      - name: Camera alert
+        unique_id: attic_hydro_alert_camera
+        device_class: problem
+        icon: mdi:camera-off
+        availability: "{{ state_attr('camera.attic_hydroponics_camera', 'timestamp') is not none }}"
+        state: >-
+          {{ now() - as_datetime(state_attr('camera.attic_hydroponics_camera', 'timestamp'))
+             > timedelta(minutes=40) }}
+        attributes:
+          detail: >-
+            {% set ts = state_attr('camera.attic_hydroponics_camera', 'timestamp') %}
+            {% set at = as_timestamp(ts) | timestamp_custom('%d %b, %H:%M') if ts else 'never' %}
+            {% if ts and now() - as_datetime(ts) > timedelta(minutes=40) %}No new photo since {{ at }}.
+            {% else %}New photo at {{ at }}.{% endif %}
+
+automation:
+  # The waiting happens here, not in the sensors: Home Assistant only delays a
+  # template sensor going from off to on, so after a restart (unknown -> on) a
+  # sensor delay would alert at once. "for:" counts from any earlier state.
+  - id: attic_alerts_notify
+    alias: "Attic alerts: notify the phones"
+    description: >-
+      One notification when a problem has lasted "Alert after" minutes, one
+      when it has been gone for 5 minutes (same tag, so the second replaces the
+      first on the phone). input_text.attic_alerts_sent remembers which alerts
+      went out, so a restart neither repeats nor forgets them. Also shown in
+      Home Assistant's notification panel while the problem lasts.
+    mode: queued
+    max: 20
+    triggers:
+      - trigger: state
+        entity_id: &alerts
+          - binary_sensor.box_temperature_alert
+          - binary_sensor.box_humidity_alert
+          - binary_sensor.box_vpd_alert
+          - binary_sensor.collector_alert
+          - binary_sensor.camera_alert
+        to: "on"
+        for:
+          minutes: "{{ states('input_number.attic_alert_delay_minutes') | int(10) }}"
+        id: problem
+      - trigger: state
+        entity_id: *alerts
+        to: "off"
+        for:
+          minutes: 5
+        id: cleared
+    variables:
+      # Add a phone here, e.g. [mobile_app_pixel_7_pro, mobile_app_other_phone].
+      phones:
+        - mobile_app_pixel_7_pro
+      what: "{{ state_attr(trigger.entity_id, 'friendly_name') | replace(' alert', '') }}"
+      tag: "{{ trigger.entity_id | replace('binary_sensor.', 'attic_') }}"
+      sent: "{{ states('input_text.attic_alerts_sent').split(',') | select('match', 'attic_') | list }}"
+      detail: "{{ state_attr(trigger.entity_id, 'detail') }}"
+      title: >-
+        {{ ('⚠️ ' ~ what) if trigger.id == 'problem' else ('✅ ' ~ what ~ ' OK') }}
+    conditions:
+      # A problem already notified is not repeated; a "back to normal" is only
+      # sent for a problem that was notified.
+      - condition: template
+        value_template: >-
+          {{ (trigger.id == 'problem') != (tag in sent) }}
+    actions:
+      - if:
+          - condition: trigger
+            id: problem
+        then:
+          - action: persistent_notification.create
+            data:
+              notification_id: "{{ tag }}"
+              title: "{{ title }}"
+              message: "{{ detail }}"
+          - action: input_text.set_value
+            target:
+              entity_id: input_text.attic_alerts_sent
+            data:
+              value: "{{ (sent + [tag]) | join(',') }}"
+        else:
+          - action: persistent_notification.dismiss
+            data:
+              notification_id: "{{ tag }}"
+          - action: input_text.set_value
+            target:
+              entity_id: input_text.attic_alerts_sent
+            data:
+              value: "{{ sent | reject('eq', tag) | join(',') }}"
+      # Last, so a phone that is not set up (e.g. on the laptop) blocks nothing.
+      - repeat:
+          for_each: "{{ phones }}"
+          sequence:
+            - action: "notify.{{ repeat.item }}"
+              continue_on_error: true
+              data:
+                title: "{{ title }}"
+                message: "{{ detail }}"
+                data:
+                  tag: "{{ tag }}"
+                  # Android: its own notification category, which you can allow
+                  # through Do Not Disturb (phone Settings > Notifications).
+                  channel: Attic alerts
+                  importance: high
+                  priority: high
+                  ttl: 0
+
+  - id: attic_alerts_default_thresholds
+    alias: "Attic alerts: fill in default thresholds"
+    description: >-
+      At start-up, give any threshold still at the bottom of its range (never
+      set) its default. Values you changed in the app are kept.
+    mode: single
+    triggers:
+      - trigger: homeassistant
+        event: start
+    actions:
+      - action: script.attic_alerts_default_thresholds
+        data:
+          only_unset: true
