@@ -336,6 +336,20 @@ sudo nmcli connection up "$CONN"
 
 **Check:** `ip link show eth1 | grep -o 'mtu [0-9]*'` prints `mtu 1440`, also after a reboot.
 
+The Docker containers need the same limit, or Home Assistant cannot reach the
+internet over 4G: no phone notifications ("Timeout sending notification"), no
+weather. Ping works from inside the container, but every HTTPS request stops
+after the TLS "Client hello", because the server's certificate comes back in
+packets sized for the container's MTU (1500). `docker-compose.yml` therefore
+sets the project network's MTU to 1440 (the `networks:` block at the end). It
+only applies when the network is created, so after changing it:
+`docker compose down && docker compose up -d`.
+
+**Check:** `docker compose exec homeassistant cat /sys/class/net/eth0/mtu`
+prints `1440`, and
+`docker compose exec homeassistant curl -sS -o /dev/null -w "%{http_code}\n" https://mobile-apps.home-assistant.io/`
+prints `200`.
+
 ### The watchdog (reconnects the modem by itself)
 
 `tools/modem_watchdog.py`, run every 2 minutes by a systemd timer, through

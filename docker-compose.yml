@@ -63,3 +63,13 @@ services:
         # "Unable to open log file"). Docker Desktop on Windows ignores owners.
         chown -R 1883:1883 /mosquitto/data /mosquitto/log
         echo "Password file written with users: $$MQTT_HA_USER, $$MQTT_COLLECTOR_USER"
+
+networks:
+  default:
+    driver_opts:
+      # The 4G link drops packets bigger than about 1460 bytes, and the modem
+      # interface on the Pi runs at 1440. Containers default to 1500, so their
+      # HTTPS stalls after the TLS "Client hello" (Home Assistant then cannot
+      # send phone notifications). Harmless on a normal network.
+      # Applies when the network is created: docker compose down && up -d.
+      com.docker.network.driver.mtu: "1440"
