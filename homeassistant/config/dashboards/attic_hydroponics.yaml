@@ -38,6 +38,39 @@ views:
             entity: binary_sensor.attic_hydroponics_collector
             name: Collector
 
+      # --- T4 fan: the AC Infinity Controller 69 Pro, over Bluetooth (Pi only) --
+      # Entities come from the ac_infinity integration (REAL_SENSORS.md part 9c);
+      # on the laptop they do not exist and the cards show "not available".
+      - type: grid
+        cards:
+          - type: heading
+            heading: T4 fan
+            icon: mdi:fan
+          - type: tile
+            entity: fan.attic_controller_69_pro_g_sp7n7_port_1_fan
+            name: T4 fan
+            grid_options:
+              columns: full
+            features:
+              - type: fan-speed
+          - type: tile
+            entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
+            name: Controller temperature
+          - type: tile
+            entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
+            name: Controller humidity
+          - type: tile
+            entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
+            name: Controller VPD
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              Read from the controller's own probe over Bluetooth. Turning the
+              fan **off** keeps the controller's saved minimum speed, so it may
+              still turn slowly. The controller keeps running its own program
+              if the Pi is off.
+
       # --- Camera: the latest photo (one every 10 minutes) --------------------
       - type: grid
         cards:
@@ -164,7 +197,7 @@ views:
             heading: History
             icon: mdi:chart-line
           - type: history-graph
-            title: Temperature, box vs attic, last 24 hours
+            title: Temperature, box vs attic vs T4 controller, last 24 hours
             hours_to_show: 24
             grid_options:
               columns: 12
@@ -173,8 +206,10 @@ views:
                 name: Box
               - entity: sensor.attic_hydroponics_attic_temperature
                 name: Attic
+              - entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
+                name: T4 controller
           - type: history-graph
-            title: Humidity, box vs attic, last 24 hours
+            title: Humidity, box vs attic vs T4 controller, last 24 hours
             hours_to_show: 24
             grid_options:
               columns: 12
@@ -183,14 +218,18 @@ views:
                 name: Box
               - entity: sensor.attic_hydroponics_attic_humidity
                 name: Attic
+              - entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
+                name: T4 controller
           - type: history-graph
-            title: Box VPD (kPa), last 24 hours
+            title: VPD (kPa), box vs T4 controller, last 24 hours
             hours_to_show: 24
             grid_options:
               columns: 12
             entities:
               - entity: sensor.box_vpd
-                name: VPD
+                name: Box
+              - entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
+                name: T4 controller
           - type: markdown
             grid_options:
               columns: 12
