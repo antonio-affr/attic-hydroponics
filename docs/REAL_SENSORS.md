@@ -401,6 +401,52 @@ countdown). Do not shut down or reboot during the test: the undo exists only
 while the Pi runs. Use another unit name (`wifi-back-on-2`) for a second test
 the same day.
 
+## 9c. The AC Infinity controller (Bluetooth)
+
+The CLOUDLINE T4 fan's **Controller 69 Pro** has its own temperature and
+humidity probe. Home Assistant reads it over Bluetooth with hunterjm's
+integration, kept in git at `homeassistant/config/custom_components/ac_infinity/`
+(release v2.0.0, see `VENDORED.md` there). No cloud, no AC Infinity account,
+no 4G data: temperature, humidity and VPD arrive in the controller's own
+broadcast; fan state and controls go through a short Bluetooth connection.
+
+**Why `bluetoothctl` never lists it.** The controller does not announce
+itself as "discoverable", and the Pi's Bluetooth service quietly drops new
+devices that do not. The chip does hear it (address `20:6E:F1:F9:4C:3E`,
+manufacturer 2306 = 0x0902). Proof, with `btmon` recording during a scan:
+
+```bash
+sudo -v
+sudo timeout 35 btmon > ~/btmon.txt 2>&1 &
+bluetoothctl --timeout 30 scan le
+sleep 6; grep -c "20:6E:F1:F9:4C:3E" ~/btmon.txt; rm ~/btmon.txt
+```
+
+A count above 0 means it is heard. Home Assistant reads broadcasts directly
+from the chip, so it is not affected. A phone holding a connection to the
+controller (the AC Infinity app open) stops its broadcasts: close the app.
+
+**Give Home Assistant the Bluetooth.** `docker-compose.bluetooth.yml` (Pi only)
+puts Home Assistant on the Pi's own network, gives it D-Bus and two Bluetooth
+permissions, and points the name `mosquitto` to `127.0.0.1`, so the MQTT setup
+stays as it is. Enable it with one line in the Pi's `.env`:
+
+```bash
+echo 'COMPOSE_FILE=docker-compose.yml:docker-compose.bluetooth.yml' >> .env
+docker compose up -d
+```
+
+**Check:** `docker inspect -f '{{.HostConfig.NetworkMode}}' attic-hydroponics-homeassistant-1`
+prints `host`, the dashboard loads as before, and the sensors still update.
+
+**Add the controller:** Settings → Devices & services. Home Assistant finds it
+by itself (**Discovered: AC Infinity**, "Controller 69 Pro"): **Add**. If it
+does not appear, **+ Add integration → AC Infinity**. The first time, Home
+Assistant downloads the library `ac-infinity-ble` (needs the internet).
+
+**Check:** the device page shows temperature, humidity and VPD close to the
+controller's screen.
+
 ## 10. Day-to-day
 
 | Task | Command (on the Pi, in `~/attic-hydroponics`) |
@@ -421,13 +467,10 @@ Upgrading Mosquitto or Home Assistant is deliberate: change the pinned tag in
 
 ## Later (not needed on the Pi day)
 
-- **Xiaomi Bluetooth sensors (QBH4312GL):** Home Assistant needs the Pi's
-  Bluetooth, which in Docker means `network_mode: host` and access to D-Bus
-  for the `homeassistant` service. Test one sensor before buying more; newer
-  models need an encryption key from the Xiaomi account.
+- **Xiaomi Bluetooth sensors (QBH4312GL):** Home Assistant already has the
+  Pi's Bluetooth (part 9c). Test one sensor before buying more; newer models
+  need an encryption key from the Xiaomi account.
 - **Real reservoir sensor:** change `reservoir_level` to the new sensor type in
   `config/collector.pi.yaml`. Dashboard and topics stay the same.
-- **Alerts:** thresholds as `input_number` helpers, notifications that clear
-  themselves; test with the `force` command and by stopping the collector.
 - **Backups:** copy `homeassistant/config/` (with HA stopped) and `.env`
   somewhere off the Pi now and then.

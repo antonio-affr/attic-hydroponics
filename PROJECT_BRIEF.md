@@ -70,6 +70,11 @@ Phone / laptop  --Tailscale over 4G-->  Home Assistant
 - Alerts (2026-11-14): phone notifications from Home Assistant for box
   temperature, humidity and VPD out of range, collector offline and a stale
   camera; thresholds editable in the app (README, "Alerts").
+- AC Infinity Controller 69 Pro (2026-11-16): read by Home Assistant over
+  Bluetooth, locally (no cloud, no 4G data), with hunterjm's integration
+  vendored at v2.0.0 instead of HACS. The Wi-Fi/cloud route with a Pi hotspot
+  was considered and not needed. On the Pi, Home Assistant now runs on the
+  host network for Bluetooth (docs/REAL_SENSORS.md, part 9c).
 - Remote access is Tailscale only (personal account): the Pi, the phone, and
   since 2026-11-13 the laptop too (by choice, to SSH into the Pi in the
   attic). See docs/REAL_SENSORS.md, part 9.

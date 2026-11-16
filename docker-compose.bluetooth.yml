@@ -1,0 +1,25 @@
+# Pi only: gives Home Assistant the Pi's Bluetooth (AC Infinity controller,
+# later the Xiaomi sensors). Enabled by this line in the Pi's .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.bluetooth.yml
+# Without that line (the laptop) nothing here applies.
+# After changing it: docker compose up -d
+services:
+  homeassistant:
+    # Bluetooth needs the Pi's own network. Home Assistant then listens on the
+    # Pi's addresses directly, as HA_BIND_ADDRESS=0.0.0.0 already allowed
+    # (docs/REAL_SENSORS.md, "Why 0.0.0.0 is safe here").
+    network_mode: host
+    ports: !reset []
+    # The broker publishes 1883 on 127.0.0.1 only, so the name "mosquitto" that
+    # Home Assistant's MQTT setup uses must point there now.
+    extra_hosts:
+      - "mosquitto:127.0.0.1"
+    # D-Bus: how Home Assistant talks to the Pi's Bluetooth service (BlueZ).
+    volumes:
+      - /run/dbus:/run/dbus:ro
+    # Lets Home Assistant read Bluetooth broadcasts straight from the chip. The
+    # AC Infinity controller does not announce itself as "discoverable", so the
+    # Pi's Bluetooth service alone never lists it.
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW

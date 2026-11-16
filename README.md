@@ -12,6 +12,8 @@ Sensors -> Python collector -> Mosquitto (MQTT) -> Home Assistant -> dashboard, 
   It also computes the box **VPD** (vapour pressure deficit, kPa) from the box
   temperature and humidity: a template sensor in `homeassistant/config/configuration.yaml`.
   And it sends the **alerts** to the phone app (see below).
+  On the Pi it also reads the T4 fan's **AC Infinity Controller 69 Pro** over
+  Bluetooth (docs/REAL_SENSORS.md, part 9c).
 - **Collector** (Python): reads the sensors, validates the values and publishes
   them with MQTT Discovery, so the sensors appear in Home Assistant by themselves.
 
@@ -108,9 +110,11 @@ real bytes the attic sensor returned, through a fake I2C bus.
 
 ```
 docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
+docker-compose.bluetooth.yml  Pi only: Home Assistant gets the Pi's Bluetooth (enabled in .env)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts); runtime state is git-ignored
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts),
+                            custom_components/ac_infinity (pinned, vendored); runtime state is git-ignored
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
 config/                     collector profiles: simulator (30 s) and pi (5 min)
 deploy/                     systemd units for the Pi: collector service, 4G modem watchdog
@@ -121,6 +125,8 @@ docs/REAL_SENSORS.md        Pi and Grove sensor guide
 ## Security
 
 - Ports are published on `127.0.0.1` (this machine only) unless `.env` says otherwise.
+  On the Pi, with Bluetooth enabled, Home Assistant uses the Pi's own network and
+  answers on all its addresses, as `HA_BIND_ADDRESS=0.0.0.0` already did there.
 - Never expose 1883 or 8123 to the internet. Remote access goes through Tailscale.
 - Mosquitto rejects anonymous clients; Home Assistant and the collector have separate users.
 
