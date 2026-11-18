@@ -4,11 +4,11 @@
 
 title: Attic Hydroponics
 views:
-  - title: Overview
-    path: overview
-    icon: mdi:sprout
+  # Tab 1: the tent drawing and the plants. The app opens here.
+  - title: Tent
+    path: tent
     type: sections
-    max_columns: 3
+    max_columns: 2
     sections:
       # --- Tent: live values on top of the tent drawing ------------------------
       # Background: homeassistant/config/www/attic_tent.svg, served as /local/.
@@ -176,6 +176,12 @@ views:
               To correct a plant, remove it and add it again. With no date
               picked, a new plant counts as planted today.
 
+  # Tab 2: the numbers, camera, alerts and history.
+  - title: Stats
+    path: stats
+    type: sections
+    max_columns: 3
+    sections:
       # --- Current values -------------------------------------------------
       - type: grid
         cards:

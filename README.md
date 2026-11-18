@@ -99,7 +99,8 @@ Unavailable until the next cycle.
 
 ## Tent drawing and plants
 
-The dashboard opens on **Tent**: a drawing of the tent
+The dashboard has two tabs: **Tent** (the drawing and the plants, where it opens)
+and **Stats** (current values, T4 fan, camera, status, alerts, history). Tent shows a drawing of the tent
 (`homeassistant/config/www/attic_tent.svg`) with live values on top of it, placed
 by percentage in the dashboard file. After editing the drawing, bump `?v=` in its
 URL there, or phones keep showing the old one.
