@@ -20,7 +20,7 @@ views:
             heading: Tent
             icon: mdi:tent
           - type: picture-elements
-            image: /local/attic_tent.svg?v=3
+            image: /local/attic_tent.svg?v=4
             grid_options:
               columns: full
             elements:
@@ -86,6 +86,66 @@ views:
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
                 style: {<<: *chip, left: 68.3%, top: 64%, color: "#a5e8b0"}
+
+              # What is growing (packages/attic_plants.yaml). Tap a bubble to
+              # rename the plant; the planting date is in the "Plants" section.
+              - &plant
+                type: state-label
+                entity: sensor.tray2grow_1_label
+                tap_action:
+                  action: more-info
+                  entity: input_text.attic_plant_tray_1
+                style: &plant_chip
+                  <<: *chip
+                  left: 60%
+                  top: 49.7%
+                  color: "#b7e6c4"
+                  background: rgba(16, 36, 24, 0.85)
+                  border: 1px solid rgba(111, 224, 139, 0.35)
+              - <<: *plant
+                entity: sensor.tray2grow_2_label
+                tap_action:
+                  action: more-info
+                  entity: input_text.attic_plant_tray_2
+                style: {<<: *plant_chip, top: 71.6%}
+              - <<: *plant
+                entity: sensor.grow_area_3_label
+                tap_action:
+                  action: more-info
+                  entity: input_text.attic_plant_area_3
+                style: {<<: *plant_chip, top: 93.1%}
+
+      # --- Plants: what is growing where (packages/attic_plants.yaml) ---------
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plants
+            icon: mdi:sprout
+          - type: entities
+            grid_options:
+              columns: full
+            entities:
+              - entity: input_text.attic_plant_tray_1
+                name: Tray2Grow 1
+              - entity: input_datetime.attic_planted_tray_1
+                name: Tray2Grow 1, planted on
+              - type: divider
+              - entity: input_text.attic_plant_tray_2
+                name: Tray2Grow 2
+              - entity: input_datetime.attic_planted_tray_2
+                name: Tray2Grow 2, planted on
+              - type: divider
+              - entity: input_text.attic_plant_area_3
+                name: Grow area 3
+              - entity: input_datetime.attic_planted_area_3
+                name: Grow area 3, planted on
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              Type the plant's name and pick the day it was planted: the tent
+              drawing shows **"Basil · day 12"**. Clear the name when a tray is
+              emptied. No date needed: then it shows only the name.
 
       # --- Current values -------------------------------------------------
       - type: grid

@@ -97,6 +97,19 @@ Unavailable until the next cycle.
 - They come from the Pi itself: if the Pi has no power or no internet, no
   alert can reach the phone.
 
+## Tent drawing and plants
+
+The dashboard opens on **Tent**: a drawing of the tent
+(`homeassistant/config/www/attic_tent.svg`) with live values on top of it, placed
+by percentage in the dashboard file. After editing the drawing, bump `?v=` in its
+URL there, or phones keep showing the old one.
+
+What grows in each area is set in the app, in the **Plants** section (or by
+tapping the green bubble on a tray): a plant name and a planting date per area,
+shown on the drawing as "Basil · day 12". They are helpers from
+`homeassistant/config/packages/attic_plants.yaml`; Home Assistant remembers them
+across restarts.
+
 ## Tests
 
 ```powershell
@@ -113,8 +126,9 @@ docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 docker-compose.bluetooth.yml  Pi only: Home Assistant gets the Pi's Bluetooth (enabled in .env)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts),
-                            custom_components/ac_infinity (pinned, vendored); runtime state is git-ignored
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants),
+                            www/ (the tent drawing), custom_components/ac_infinity
+                            (pinned, vendored); runtime state is git-ignored
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
 config/                     collector profiles: simulator (30 s) and pi (5 min)
 deploy/                     systemd units for the Pi: collector service, 4G modem watchdog

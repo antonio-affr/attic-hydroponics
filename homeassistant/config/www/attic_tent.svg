@@ -98,7 +98,7 @@
     <use href="#sprout" x="455" y="428"/>
   </g>
   <rect x="75" y="428" width="430" height="28" rx="8" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
-  <text x="290" y="447" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4" text-anchor="middle">TRAY2GROW 1</text>
+  <text x="92" y="447" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4">TRAY2GROW 1</text>
 
   <!-- Light 2, its cone, tray 2 -->
   <polygon points="90,484 470,484 505,623 75,623" fill="url(#cone)"/>
@@ -112,7 +112,7 @@
     <use href="#sprout" x="455" y="623"/>
   </g>
   <rect x="75" y="623" width="430" height="28" rx="8" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
-  <text x="290" y="642" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4" text-anchor="middle">TRAY2GROW 2</text>
+  <text x="92" y="642" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4">TRAY2GROW 2</text>
 
   <!-- Grow area 3, on the floor -->
   <g>
@@ -121,5 +121,5 @@
     <use href="#sprout" x="455" y="815"/>
   </g>
   <rect x="75" y="815" width="430" height="28" rx="8" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
-  <text x="290" y="834" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4" text-anchor="middle">GROW AREA 3</text>
+  <text x="92" y="834" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4">GROW AREA 3</text>
 </svg>
