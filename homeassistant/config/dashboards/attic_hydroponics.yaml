@@ -20,10 +20,12 @@ views:
             heading: Tent
             icon: mdi:tent
           - type: picture-elements
-            image: /local/attic_tent.svg?v=2
+            image: /local/attic_tent.svg?v=3
             grid_options:
               columns: full
             elements:
+              # Value bubbles: frosted glass, coloured by kind
+              # (temperature orange, humidity blue, VPD green, water cyan).
               # Attic, outside the tent
               - &value
                 type: state-label
@@ -31,16 +33,19 @@ views:
                 style: &chip
                   left: 55%
                   top: 5.1%
-                  color: "#1f2a24"
-                  background: rgba(255, 255, 255, 0.9)
-                  border-radius: 10px
-                  padding: 2px 8px
+                  color: "#ffb38a"
+                  background: rgba(10, 16, 20, 0.72)
+                  border: 1px solid rgba(255, 255, 255, 0.14)
+                  backdrop-filter: blur(6px)
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35)
+                  border-radius: 999px
+                  padding: 2px 10px
                   font-size: 14px
                   font-weight: 600
                   white-space: nowrap
               - <<: *value
                 entity: sensor.attic_hydroponics_attic_humidity
-                style: {<<: *chip, left: 73.3%}
+                style: {<<: *chip, left: 73.3%, color: "#8fd3ff"}
               - type: state-icon
                 entity: binary_sensor.attic_hydroponics_collector
                 style: {left: 93.3%, top: 5.1%}
@@ -48,7 +53,7 @@ views:
               # Tank 1 (the reservoir level sensor; Tank 2 has none yet)
               - <<: *value
                 entity: sensor.attic_hydroponics_reservoir_level
-                style: {<<: *chip, left: 25%, top: 27.5%}
+                style: {<<: *chip, left: 25%, top: 27.5%, color: "#6fdcff"}
 
               # T4 fan: icon (tap for speed and on/off), then the speed
               - type: state-icon
@@ -58,29 +63,29 @@ views:
                 entity: fan.attic_controller_69_pro_g_sp7n7_port_1_fan
                 attribute: percentage
                 suffix: " %"
-                style: {<<: *chip, left: 80%, top: 26.1%}
+                style: {<<: *chip, left: 80%, top: 26.1%, color: "#e8f0f2"}
 
               # Box sensor (SHT3x), between light 1 and tray 1
               - <<: *value
                 entity: sensor.attic_hydroponics_air_temperature
-                style: {<<: *chip, left: 31.7%, top: 44.9%}
+                style: {<<: *chip, left: 31.7%, top: 43.3%}
               - <<: *value
                 entity: sensor.attic_hydroponics_humidity
-                style: {<<: *chip, left: 50%, top: 44.9%}
+                style: {<<: *chip, left: 50%, top: 43.3%, color: "#8fd3ff"}
               - <<: *value
                 entity: sensor.box_vpd
-                style: {<<: *chip, left: 68.3%, top: 44.9%}
+                style: {<<: *chip, left: 68.3%, top: 43.3%, color: "#a5e8b0"}
 
               # T4 controller probe, between light 2 and tray 2
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
-                style: {<<: *chip, left: 31.7%, top: 66.9%}
+                style: {<<: *chip, left: 31.7%, top: 64%}
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
-                style: {<<: *chip, left: 50%, top: 66.9%}
+                style: {<<: *chip, left: 50%, top: 64%, color: "#8fd3ff"}
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
-                style: {<<: *chip, left: 68.3%, top: 66.9%}
+                style: {<<: *chip, left: 68.3%, top: 64%, color: "#a5e8b0"}
 
       # --- Current values -------------------------------------------------
       - type: grid
