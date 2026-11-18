@@ -19,7 +19,7 @@
       <stop offset="1" stop-color="#0d5f86" stop-opacity="0.9"/>
     </linearGradient>
     <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffd54a" stop-opacity="0.22"/>
+      <stop offset="0" stop-color="#ffd54a" stop-opacity="0.2"/>
       <stop offset="1" stop-color="#ffd54a" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
@@ -27,8 +27,8 @@
       <stop offset="1" stop-color="#ffc928"/>
     </linearGradient>
     <linearGradient id="tray" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2f4a38"/>
-      <stop offset="1" stop-color="#1f3226"/>
+      <stop offset="0" stop-color="#2b4634"/>
+      <stop offset="1" stop-color="#1c2f23"/>
     </linearGradient>
     <linearGradient id="duct" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#3a4850"/>
@@ -59,61 +59,53 @@
 
   <!-- Shelves -->
   <g stroke="#2c3a42" stroke-width="2">
-    <line x1="42" y1="300" x2="558" y2="300"/>
-    <line x1="42" y1="460" x2="558" y2="460"/>
-    <line x1="42" y1="655" x2="558" y2="655"/>
+    <line x1="42" y1="280" x2="558" y2="280"/>
+    <line x1="42" y1="470" x2="558" y2="470"/>
+    <line x1="42" y1="660" x2="558" y2="660"/>
   </g>
 
   <!-- Top shelf: water tanks -->
-  <g>
-    <rect x="75" y="125" width="150" height="170" rx="14" fill="#1a262d" stroke="#3b4d57" stroke-width="2.5"/>
-    <path d="M78 212 Q 114 202 150 212 T 222 212 V 280 Q 222 292 210 292 H 90 Q 78 292 78 280 Z" fill="url(#water)"/>
-    <text x="150" y="158" font-size="17" font-weight="700" letter-spacing="2" fill="#cfdbe0" text-anchor="middle">TANK 1</text>
+  <rect x="75" y="108" width="150" height="166" rx="14" fill="#1a262d" stroke="#3b4d57" stroke-width="2.5"/>
+  <path d="M78 196 Q 114 186 150 196 T 222 196 V 259 Q 222 271 210 271 H 90 Q 78 271 78 259 Z" fill="url(#water)"/>
+  <text x="150" y="140" font-size="17" font-weight="700" letter-spacing="2" fill="#cfdbe0" text-anchor="middle">TANK 1</text>
 
-    <rect x="245" y="125" width="150" height="170" rx="14" fill="#1a262d" stroke="#3b4d57" stroke-width="2.5"/>
-    <path d="M248 212 Q 284 202 320 212 T 392 212 V 280 Q 392 292 380 292 H 260 Q 248 292 248 280 Z" fill="url(#water)"/>
-    <text x="320" y="158" font-size="17" font-weight="700" letter-spacing="2" fill="#cfdbe0" text-anchor="middle">TANK 2</text>
-  </g>
+  <rect x="245" y="108" width="150" height="166" rx="14" fill="#1a262d" stroke="#3b4d57" stroke-width="2.5"/>
+  <path d="M248 196 Q 284 186 320 196 T 392 196 V 259 Q 392 271 380 271 H 260 Q 248 271 248 259 Z" fill="url(#water)"/>
+  <text x="320" y="140" font-size="17" font-weight="700" letter-spacing="2" fill="#cfdbe0" text-anchor="middle">TANK 2</text>
 
   <!-- Top shelf: T4 fan and its duct -->
-  <rect x="463" y="82" width="34" height="74" fill="url(#duct)"/>
+  <rect x="463" y="82" width="34" height="62" fill="url(#duct)"/>
   <g stroke="#2a353b" stroke-width="2">
-    <line x1="463" y1="100" x2="497" y2="100"/>
-    <line x1="463" y1="118" x2="497" y2="118"/>
-    <line x1="463" y1="136" x2="497" y2="136"/>
+    <line x1="463" y1="98" x2="497" y2="98"/>
+    <line x1="463" y1="114" x2="497" y2="114"/>
+    <line x1="463" y1="130" x2="497" y2="130"/>
   </g>
-  <circle cx="480" cy="205" r="52" fill="#1a262d" stroke="#3b4d57" stroke-width="2.5"/>
-  <circle cx="480" cy="205" r="42" fill="none" stroke="#2c3a42" stroke-width="1.5" stroke-dasharray="4 5"/>
-  <text x="480" y="286" font-size="15" font-weight="700" letter-spacing="2" fill="#cfdbe0" text-anchor="middle">T4 FAN</text>
+  <circle cx="480" cy="190" r="48" fill="#1a262d" stroke="#3b4d57" stroke-width="2.5"/>
+  <circle cx="480" cy="190" r="39" fill="none" stroke="#2c3a42" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="480" y="266" font-size="15" font-weight="700" letter-spacing="2" fill="#cfdbe0" text-anchor="middle">T4 FAN</text>
 
   <!-- Light 1, its cone, tray 1 -->
-  <polygon points="90,324 470,324 505,428 75,428" fill="url(#cone)"/>
-  <rect x="90" y="312" width="380" height="12" rx="6" fill="#ffd54a" filter="url(#bloom)" opacity="0.8"/>
-  <rect x="90" y="312" width="380" height="12" rx="6" fill="url(#bar)"/>
-  <text x="480" y="323" font-size="14" font-weight="700" letter-spacing="1.5" fill="#d9b23a">LIGHT 1</text>
-  <text x="300" y="343" font-size="14" font-weight="700" letter-spacing="2" fill="#7f8f98" text-anchor="middle">BOX SENSOR</text>
-  <g>
-    <use href="#sprout" x="98" y="428"/><use href="#sprout" x="290" y="428"/><use href="#sprout" x="482" y="428"/>
-  </g>
-  <rect x="75" y="428" width="430" height="28" rx="8" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
-  <text x="290" y="447" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4" text-anchor="middle">TRAY2GROW 1</text>
+  <polygon points="90,304 470,304 505,408 75,408" fill="url(#cone)"/>
+  <rect x="90" y="292" width="380" height="12" rx="6" fill="#ffd54a" filter="url(#bloom)" opacity="0.8"/>
+  <rect x="90" y="292" width="380" height="12" rx="6" fill="url(#bar)"/>
+  <text x="480" y="303" font-size="14" font-weight="700" letter-spacing="1.5" fill="#d9b23a">LIGHT 1</text>
+  <text x="300" y="350" font-size="13" font-weight="700" letter-spacing="2" fill="#7f8f98" text-anchor="middle">BOX SENSOR</text>
+  <use href="#sprout" x="96" y="408"/><use href="#sprout" x="484" y="408"/>
+  <rect x="75" y="408" width="430" height="58" rx="10" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
+  <text x="290" y="422" font-size="11" font-weight="700" letter-spacing="2.5" fill="#7fbf91" text-anchor="middle">TRAY2GROW 1</text>
 
   <!-- Light 2, its cone, tray 2 -->
-  <polygon points="90,484 470,484 505,623 75,623" fill="url(#cone)"/>
-  <rect x="90" y="472" width="380" height="12" rx="6" fill="#ffd54a" filter="url(#bloom)" opacity="0.8"/>
-  <rect x="90" y="472" width="380" height="12" rx="6" fill="url(#bar)"/>
-  <text x="480" y="483" font-size="14" font-weight="700" letter-spacing="1.5" fill="#d9b23a">LIGHT 2</text>
-  <text x="300" y="515" font-size="14" font-weight="700" letter-spacing="2" fill="#7f8f98" text-anchor="middle">T4 CONTROLLER PROBE</text>
-  <g>
-    <use href="#sprout" x="98" y="623"/><use href="#sprout" x="290" y="623"/><use href="#sprout" x="482" y="623"/>
-  </g>
-  <rect x="75" y="623" width="430" height="28" rx="8" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
-  <text x="290" y="642" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4" text-anchor="middle">TRAY2GROW 2</text>
+  <polygon points="90,494 470,494 505,598 75,598" fill="url(#cone)"/>
+  <rect x="90" y="482" width="380" height="12" rx="6" fill="#ffd54a" filter="url(#bloom)" opacity="0.8"/>
+  <rect x="90" y="482" width="380" height="12" rx="6" fill="url(#bar)"/>
+  <text x="480" y="493" font-size="14" font-weight="700" letter-spacing="1.5" fill="#d9b23a">LIGHT 2</text>
+  <text x="300" y="540" font-size="13" font-weight="700" letter-spacing="2" fill="#7f8f98" text-anchor="middle">T4 CONTROLLER PROBE</text>
+  <use href="#sprout" x="96" y="598"/><use href="#sprout" x="484" y="598"/>
+  <rect x="75" y="598" width="430" height="58" rx="10" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
+  <text x="290" y="612" font-size="11" font-weight="700" letter-spacing="2.5" fill="#7fbf91" text-anchor="middle">TRAY2GROW 2</text>
 
   <!-- Grow area 3, on the floor -->
-  <g>
-    <use href="#sprout" x="98" y="815"/><use href="#sprout" x="290" y="815"/><use href="#sprout" x="482" y="815"/>
-  </g>
-  <rect x="75" y="815" width="430" height="28" rx="8" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
-  <text x="290" y="834" font-size="14" font-weight="700" letter-spacing="2" fill="#b7e6c4" text-anchor="middle">GROW AREA 3</text>
+  <use href="#sprout" x="96" y="788"/><use href="#sprout" x="484" y="788"/>
+  <rect x="75" y="788" width="430" height="58" rx="10" fill="url(#tray)" stroke="#4b7a5a" stroke-width="2"/>
+  <text x="290" y="802" font-size="11" font-weight="700" letter-spacing="2.5" fill="#7fbf91" text-anchor="middle">GROW AREA 3</text>
 </svg>

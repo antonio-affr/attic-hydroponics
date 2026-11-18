@@ -1,0 +1,20 @@
+# The grow lights' on/off status, shown on the dashboard's tent drawing under
+# "Light 1" and "Light 2".
+#
+# There is no smart plug yet, so both say "no plug yet". When the plug is
+# added, point each state at it, e.g.:
+#   state: "{{ 'on' if is_state('switch.<the plug>', 'on') else 'off' }}"
+#
+# Loaded as a package (configuration.yaml: homeassistant > packages). Changing
+# this file needs a Home Assistant restart.
+
+template:
+  - sensor:
+      - name: Light 1 status
+        unique_id: attic_light_1_status
+        icon: mdi:led-strip
+        state: "no plug yet"
+      - name: Light 2 status
+        unique_id: attic_light_2_status
+        icon: mdi:led-strip
+        state: "no plug yet"

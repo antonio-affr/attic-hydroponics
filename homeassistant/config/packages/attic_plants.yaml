@@ -1,133 +1,182 @@
-# What is growing where: two plants per growing area (left and right, as seen
-# from the front of the tent), each with a name and a planting date, shown on
-# the dashboard's tent drawing as "Basil · day 12" (or "Empty").
+# What is growing where. Any number of plants per growing area (Tray2Grow 1,
+# Tray2Grow 2, Grow area 3), each with a name and a planting date, listed on
+# the dashboard's tent drawing as "Basil · day 12".
 #
-# All are helpers you change in the app (dashboard, "Plants" section, or tap a
-# green bubble on the drawing): no restart, no file to edit. Home Assistant
-# remembers them across restarts. A date left at 1970-01-01 means "not set".
+# Managed in the app, dashboard "Plants" section: a form (name, planted on,
+# area, "Add plant") and a "Plant to remove" list with a "Remove" button. To
+# correct a plant, remove it and add it again. No restart, no file to edit.
+#
+# Where the list lives: in the attributes of sensor.attic_plants, which only
+# changes on the "attic_plants_change" event the two scripts below fire, and
+# which Home Assistant restores after a restart (trigger-based template
+# sensors do). It is not in git: back up Home Assistant to keep it.
 #
 # Loaded as a package (configuration.yaml: homeassistant > packages). Changing
 # this file needs a Home Assistant restart.
 
 input_text:
-  attic_plant_tray_1_left:
-    name: "Tray2Grow 1 left: plant"
-    max: 16
-    icon: mdi:sprout
-  attic_plant_tray_1_right:
-    name: "Tray2Grow 1 right: plant"
-    max: 16
-    icon: mdi:sprout
-  attic_plant_tray_2_left:
-    name: "Tray2Grow 2 left: plant"
-    max: 16
-    icon: mdi:sprout
-  attic_plant_tray_2_right:
-    name: "Tray2Grow 2 right: plant"
-    max: 16
-    icon: mdi:sprout
-  attic_plant_area_3_left:
-    name: "Grow area 3 left: plant"
-    max: 16
-    icon: mdi:sprout
-  attic_plant_area_3_right:
-    name: "Grow area 3 right: plant"
-    max: 16
+  attic_new_plant_name:
+    name: "New plant: name"
+    max: 20
     icon: mdi:sprout
 
 input_datetime:
-  attic_planted_tray_1_left:
-    name: "Tray2Grow 1 left: planted on"
-    has_date: true
-    has_time: false
-    icon: mdi:calendar-start
-  attic_planted_tray_1_right:
-    name: "Tray2Grow 1 right: planted on"
-    has_date: true
-    has_time: false
-    icon: mdi:calendar-start
-  attic_planted_tray_2_left:
-    name: "Tray2Grow 2 left: planted on"
-    has_date: true
-    has_time: false
-    icon: mdi:calendar-start
-  attic_planted_tray_2_right:
-    name: "Tray2Grow 2 right: planted on"
-    has_date: true
-    has_time: false
-    icon: mdi:calendar-start
-  attic_planted_area_3_left:
-    name: "Grow area 3 left: planted on"
-    has_date: true
-    has_time: false
-    icon: mdi:calendar-start
-  attic_planted_area_3_right:
-    name: "Grow area 3 right: planted on"
+  attic_new_plant_planted:
+    name: "New plant: planted on"
     has_date: true
     has_time: false
     icon: mdi:calendar-start
 
-# The text shown on the drawing: "<plant> · day <days since planting>",
-# just "<plant>" without a date, "Empty" without a plant.
+input_select:
+  attic_new_plant_area:
+    name: "New plant: area"
+    icon: mdi:tray
+    options:
+      - Tray2Grow 1
+      - Tray2Grow 2
+      - Grow area 3
+  # Its options are rewritten from the list by the automation below.
+  attic_plant_to_remove:
+    name: Plant to remove
+    icon: mdi:sprout-outline
+    options:
+      - No plants
+
+script:
+  attic_plant_add:
+    alias: "Plants: add"
+    icon: mdi:plus
+    mode: queued
+    sequence:
+      - condition: template
+        value_template: "{{ states('input_text.attic_new_plant_name') | trim not in ['', 'unknown', 'unavailable'] }}"
+      # No date picked (still 1970-01-01): planted today.
+      - variables:
+          planted: >-
+            {% set d = states('input_datetime.attic_new_plant_planted') %}
+            {{ d if strptime(d, '%Y-%m-%d', none) is not none and not d.startswith('1970') else now().date() | string }}
+      - event: attic_plants_change
+        event_data:
+          action: add
+          name: "{{ states('input_text.attic_new_plant_name') | trim }}"
+          area: "{{ states('input_select.attic_new_plant_area') }}"
+          planted: "{{ planted }}"
+      # Empty the name so the same plant is not added twice by accident.
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.attic_new_plant_name
+        data:
+          value: ""
+
+  attic_plant_remove:
+    alias: "Plants: remove"
+    icon: mdi:delete
+    mode: queued
+    sequence:
+      - condition: template
+        value_template: "{{ states('input_select.attic_plant_to_remove') not in ['No plants', 'unknown', 'unavailable'] }}"
+      - event: attic_plants_change
+        event_data:
+          action: remove
+          label: "{{ states('input_select.attic_plant_to_remove') }}"
+
 template:
+  # The list itself: one entry per plant, {name, area, planted (YYYY-MM-DD)}.
+  # A plant's label, used by the remove list, is "<area>: <name> (<planted>)";
+  # removing takes out the first plant with that label.
+  - triggers:
+      - trigger: event
+        event_type: attic_plants_change
+    actions:
+      - variables:
+          plants: >-
+            {% set current = state_attr('sensor.attic_plants', 'plants') or [] %}
+            {% set data = trigger.event.data %}
+            {% if data.action == 'add' %}
+              {{ current + [{'name': data.name, 'area': data.area, 'planted': data.planted}] }}
+            {% elif data.action == 'remove' %}
+              {% set ns = namespace(kept=[], done=false) %}
+              {% for p in current %}
+                {% if not ns.done and p.area ~ ': ' ~ p.name ~ ' (' ~ p.planted ~ ')' == data.label %}
+                  {% set ns.done = true %}
+                {% else %}
+                  {% set ns.kept = ns.kept + [p] %}
+                {% endif %}
+              {% endfor %}
+              {{ ns.kept }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+    sensor:
+      - name: Attic plants
+        unique_id: attic_plants_list
+        icon: mdi:sprout
+        state: "{{ plants | count }}"
+        attributes:
+          plants: "{{ plants }}"
+
+  # What each area shows on the drawing: "Basil · day 12   Mint · day 3",
+  # oldest first, or "No plants". Non-breaking spaces inside a plant's text
+  # keep it on one line when the list wraps. The three differ only in "area".
   - sensor:
-      - name: "Tray2Grow 1 left label"
-        unique_id: attic_plant_label_tray_1_left
+      - name: Tray2Grow 1 plants
+        unique_id: attic_plants_tray2grow_1
         icon: mdi:sprout
         state: >-
-          {% set name = states('input_text.attic_plant_tray_1_left') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_tray_1_left'), '%Y-%m-%d', none) %}
-          {% if name in ['', 'unknown', 'unavailable'] %}Empty
-          {% elif planted is none or planted.year < 2000 %}{{ name }}
-          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
-          {% endif %}
-      - name: "Tray2Grow 1 right label"
-        unique_id: attic_plant_label_tray_1_right
+          {% set area = 'Tray2Grow 1' %}
+          {% set ps = (state_attr('sensor.attic_plants', 'plants') or [])
+                      | selectattr('area', 'eq', area) | sort(attribute='planted') | list %}
+          {% set ns = namespace(items=[]) %}
+          {% for p in ps %}
+            {% set days = (now().date() - strptime(p.planted, '%Y-%m-%d').date()).days %}
+            {% set ns.items = ns.items + [(p.name ~ ' · day ' ~ days) | replace(' ', ' ')] %}
+          {% endfor %}
+          {{ ns.items | join('   ') | truncate(250) if ns.items else 'No plants' }}
+      - name: Tray2Grow 2 plants
+        unique_id: attic_plants_tray2grow_2
         icon: mdi:sprout
         state: >-
-          {% set name = states('input_text.attic_plant_tray_1_right') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_tray_1_right'), '%Y-%m-%d', none) %}
-          {% if name in ['', 'unknown', 'unavailable'] %}Empty
-          {% elif planted is none or planted.year < 2000 %}{{ name }}
-          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
-          {% endif %}
-      - name: "Tray2Grow 2 left label"
-        unique_id: attic_plant_label_tray_2_left
+          {% set area = 'Tray2Grow 2' %}
+          {% set ps = (state_attr('sensor.attic_plants', 'plants') or [])
+                      | selectattr('area', 'eq', area) | sort(attribute='planted') | list %}
+          {% set ns = namespace(items=[]) %}
+          {% for p in ps %}
+            {% set days = (now().date() - strptime(p.planted, '%Y-%m-%d').date()).days %}
+            {% set ns.items = ns.items + [(p.name ~ ' · day ' ~ days) | replace(' ', ' ')] %}
+          {% endfor %}
+          {{ ns.items | join('   ') | truncate(250) if ns.items else 'No plants' }}
+      - name: Grow area 3 plants
+        unique_id: attic_plants_grow_area_3
         icon: mdi:sprout
         state: >-
-          {% set name = states('input_text.attic_plant_tray_2_left') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_tray_2_left'), '%Y-%m-%d', none) %}
-          {% if name in ['', 'unknown', 'unavailable'] %}Empty
-          {% elif planted is none or planted.year < 2000 %}{{ name }}
-          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
-          {% endif %}
-      - name: "Tray2Grow 2 right label"
-        unique_id: attic_plant_label_tray_2_right
-        icon: mdi:sprout
-        state: >-
-          {% set name = states('input_text.attic_plant_tray_2_right') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_tray_2_right'), '%Y-%m-%d', none) %}
-          {% if name in ['', 'unknown', 'unavailable'] %}Empty
-          {% elif planted is none or planted.year < 2000 %}{{ name }}
-          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
-          {% endif %}
-      - name: "Grow area 3 left label"
-        unique_id: attic_plant_label_area_3_left
-        icon: mdi:sprout
-        state: >-
-          {% set name = states('input_text.attic_plant_area_3_left') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_area_3_left'), '%Y-%m-%d', none) %}
-          {% if name in ['', 'unknown', 'unavailable'] %}Empty
-          {% elif planted is none or planted.year < 2000 %}{{ name }}
-          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
-          {% endif %}
-      - name: "Grow area 3 right label"
-        unique_id: attic_plant_label_area_3_right
-        icon: mdi:sprout
-        state: >-
-          {% set name = states('input_text.attic_plant_area_3_right') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_area_3_right'), '%Y-%m-%d', none) %}
-          {% if name in ['', 'unknown', 'unavailable'] %}Empty
-          {% elif planted is none or planted.year < 2000 %}{{ name }}
-          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
-          {% endif %}
+          {% set area = 'Grow area 3' %}
+          {% set ps = (state_attr('sensor.attic_plants', 'plants') or [])
+                      | selectattr('area', 'eq', area) | sort(attribute='planted') | list %}
+          {% set ns = namespace(items=[]) %}
+          {% for p in ps %}
+            {% set days = (now().date() - strptime(p.planted, '%Y-%m-%d').date()).days %}
+            {% set ns.items = ns.items + [(p.name ~ ' · day ' ~ days) | replace(' ', ' ')] %}
+          {% endfor %}
+          {{ ns.items | join('   ') | truncate(250) if ns.items else 'No plants' }}
+
+automation:
+  - id: attic_plants_remove_options
+    alias: "Plants: refresh the remove list"
+    description: Rewrites the "Plant to remove" options from the plant list.
+    mode: queued
+    triggers:
+      - trigger: state
+        entity_id: sensor.attic_plants
+      - trigger: homeassistant
+        event: start
+    actions:
+      - action: input_select.set_options
+        target:
+          entity_id: input_select.attic_plant_to_remove
+        data:
+          options: >-
+            {% set ns = namespace(labels=[]) %}
+            {% for p in state_attr('sensor.attic_plants', 'plants') or [] %}
+              {% set ns.labels = ns.labels + [p.area ~ ': ' ~ p.name ~ ' (' ~ p.planted ~ ')'] %}
+            {% endfor %}
+            {{ ns.labels | unique | list if ns.labels else ['No plants'] }}

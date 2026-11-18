@@ -104,12 +104,14 @@ The dashboard opens on **Tent**: a drawing of the tent
 by percentage in the dashboard file. After editing the drawing, bump `?v=` in its
 URL there, or phones keep showing the old one.
 
-What grows in each area is set in the app, in the **Plants** section (or by
-tapping a green bubble on the drawing): two plants per area, left and right as
-seen from the front, each with a name and a planting date, shown on the drawing
-as "Basil · day 12". They are helpers from
-`homeassistant/config/packages/attic_plants.yaml`; Home Assistant remembers them
-across restarts.
+What grows in each area is managed in the app, in the **Plants** section: a form
+(name, planted on, area, **Add plant**) and a **Plant to remove** list. Each
+tray on the drawing lists its plants as "Basil · day 12". The list lives in the
+attributes of `sensor.attic_plants` (`homeassistant/config/packages/attic_plants.yaml`),
+which Home Assistant restores after a restart; it is not in git.
+
+Under each light the drawing shows whether it is on or off
+(`packages/attic_lights.yaml`); until the smart plug exists it says "no plug yet".
 
 ## Tests
 
@@ -127,7 +129,7 @@ docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 docker-compose.bluetooth.yml  Pi only: Home Assistant gets the Pi's Bluetooth (enabled in .env)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants),
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights),
                             www/ (the tent drawing), custom_components/ac_infinity
                             (pinned, vendored); runtime state is git-ignored
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
