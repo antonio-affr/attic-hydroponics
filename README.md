@@ -105,8 +105,9 @@ by percentage in the dashboard file. After editing the drawing, bump `?v=` in it
 URL there, or phones keep showing the old one.
 
 What grows in each area is set in the app, in the **Plants** section (or by
-tapping the green bubble on a tray): a plant name and a planting date per area,
-shown on the drawing as "Basil · day 12". They are helpers from
+tapping a green bubble on the drawing): two plants per area, left and right as
+seen from the front, each with a name and a planting date, shown on the drawing
+as "Basil · day 12". They are helpers from
 `homeassistant/config/packages/attic_plants.yaml`; Home Assistant remembers them
 across restarts.
 

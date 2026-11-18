@@ -1,40 +1,68 @@
-# What is growing where: a plant name and a planting date per growing area,
-# shown on the dashboard's tent drawing as "Basil · day 12" (or "Empty").
+# What is growing where: two plants per growing area (left and right, as seen
+# from the front of the tent), each with a name and a planting date, shown on
+# the dashboard's tent drawing as "Basil · day 12" (or "Empty").
 #
-# Both are helpers you change in the app (dashboard, "Plants" section, or tap
-# the green bubble on a tray): no restart, no file to edit. Home Assistant
+# All are helpers you change in the app (dashboard, "Plants" section, or tap a
+# green bubble on the drawing): no restart, no file to edit. Home Assistant
 # remembers them across restarts. A date left at 1970-01-01 means "not set".
 #
 # Loaded as a package (configuration.yaml: homeassistant > packages). Changing
 # this file needs a Home Assistant restart.
 
 input_text:
-  attic_plant_tray_1:
-    name: "Tray2Grow 1: plant"
-    max: 24
+  attic_plant_tray_1_left:
+    name: "Tray2Grow 1 left: plant"
+    max: 16
     icon: mdi:sprout
-  attic_plant_tray_2:
-    name: "Tray2Grow 2: plant"
-    max: 24
+  attic_plant_tray_1_right:
+    name: "Tray2Grow 1 right: plant"
+    max: 16
     icon: mdi:sprout
-  attic_plant_area_3:
-    name: "Grow area 3: plant"
-    max: 24
+  attic_plant_tray_2_left:
+    name: "Tray2Grow 2 left: plant"
+    max: 16
+    icon: mdi:sprout
+  attic_plant_tray_2_right:
+    name: "Tray2Grow 2 right: plant"
+    max: 16
+    icon: mdi:sprout
+  attic_plant_area_3_left:
+    name: "Grow area 3 left: plant"
+    max: 16
+    icon: mdi:sprout
+  attic_plant_area_3_right:
+    name: "Grow area 3 right: plant"
+    max: 16
     icon: mdi:sprout
 
 input_datetime:
-  attic_planted_tray_1:
-    name: "Tray2Grow 1: planted on"
+  attic_planted_tray_1_left:
+    name: "Tray2Grow 1 left: planted on"
     has_date: true
     has_time: false
     icon: mdi:calendar-start
-  attic_planted_tray_2:
-    name: "Tray2Grow 2: planted on"
+  attic_planted_tray_1_right:
+    name: "Tray2Grow 1 right: planted on"
     has_date: true
     has_time: false
     icon: mdi:calendar-start
-  attic_planted_area_3:
-    name: "Grow area 3: planted on"
+  attic_planted_tray_2_left:
+    name: "Tray2Grow 2 left: planted on"
+    has_date: true
+    has_time: false
+    icon: mdi:calendar-start
+  attic_planted_tray_2_right:
+    name: "Tray2Grow 2 right: planted on"
+    has_date: true
+    has_time: false
+    icon: mdi:calendar-start
+  attic_planted_area_3_left:
+    name: "Grow area 3 left: planted on"
+    has_date: true
+    has_time: false
+    icon: mdi:calendar-start
+  attic_planted_area_3_right:
+    name: "Grow area 3 right: planted on"
     has_date: true
     has_time: false
     icon: mdi:calendar-start
@@ -43,32 +71,62 @@ input_datetime:
 # just "<plant>" without a date, "Empty" without a plant.
 template:
   - sensor:
-      - name: "Tray2Grow 1 label"
-        unique_id: attic_plant_label_tray_1
+      - name: "Tray2Grow 1 left label"
+        unique_id: attic_plant_label_tray_1_left
         icon: mdi:sprout
         state: >-
-          {% set name = states('input_text.attic_plant_tray_1') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_tray_1'), '%Y-%m-%d', none) %}
+          {% set name = states('input_text.attic_plant_tray_1_left') | trim %}
+          {% set planted = strptime(states('input_datetime.attic_planted_tray_1_left'), '%Y-%m-%d', none) %}
           {% if name in ['', 'unknown', 'unavailable'] %}Empty
           {% elif planted is none or planted.year < 2000 %}{{ name }}
           {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
           {% endif %}
-      - name: "Tray2Grow 2 label"
-        unique_id: attic_plant_label_tray_2
+      - name: "Tray2Grow 1 right label"
+        unique_id: attic_plant_label_tray_1_right
         icon: mdi:sprout
         state: >-
-          {% set name = states('input_text.attic_plant_tray_2') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_tray_2'), '%Y-%m-%d', none) %}
+          {% set name = states('input_text.attic_plant_tray_1_right') | trim %}
+          {% set planted = strptime(states('input_datetime.attic_planted_tray_1_right'), '%Y-%m-%d', none) %}
           {% if name in ['', 'unknown', 'unavailable'] %}Empty
           {% elif planted is none or planted.year < 2000 %}{{ name }}
           {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
           {% endif %}
-      - name: "Grow area 3 label"
-        unique_id: attic_plant_label_area_3
+      - name: "Tray2Grow 2 left label"
+        unique_id: attic_plant_label_tray_2_left
         icon: mdi:sprout
         state: >-
-          {% set name = states('input_text.attic_plant_area_3') | trim %}
-          {% set planted = strptime(states('input_datetime.attic_planted_area_3'), '%Y-%m-%d', none) %}
+          {% set name = states('input_text.attic_plant_tray_2_left') | trim %}
+          {% set planted = strptime(states('input_datetime.attic_planted_tray_2_left'), '%Y-%m-%d', none) %}
+          {% if name in ['', 'unknown', 'unavailable'] %}Empty
+          {% elif planted is none or planted.year < 2000 %}{{ name }}
+          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
+          {% endif %}
+      - name: "Tray2Grow 2 right label"
+        unique_id: attic_plant_label_tray_2_right
+        icon: mdi:sprout
+        state: >-
+          {% set name = states('input_text.attic_plant_tray_2_right') | trim %}
+          {% set planted = strptime(states('input_datetime.attic_planted_tray_2_right'), '%Y-%m-%d', none) %}
+          {% if name in ['', 'unknown', 'unavailable'] %}Empty
+          {% elif planted is none or planted.year < 2000 %}{{ name }}
+          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
+          {% endif %}
+      - name: "Grow area 3 left label"
+        unique_id: attic_plant_label_area_3_left
+        icon: mdi:sprout
+        state: >-
+          {% set name = states('input_text.attic_plant_area_3_left') | trim %}
+          {% set planted = strptime(states('input_datetime.attic_planted_area_3_left'), '%Y-%m-%d', none) %}
+          {% if name in ['', 'unknown', 'unavailable'] %}Empty
+          {% elif planted is none or planted.year < 2000 %}{{ name }}
+          {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
+          {% endif %}
+      - name: "Grow area 3 right label"
+        unique_id: attic_plant_label_area_3_right
+        icon: mdi:sprout
+        state: >-
+          {% set name = states('input_text.attic_plant_area_3_right') | trim %}
+          {% set planted = strptime(states('input_datetime.attic_planted_area_3_right'), '%Y-%m-%d', none) %}
           {% if name in ['', 'unknown', 'unavailable'] %}Empty
           {% elif planted is none or planted.year < 2000 %}{{ name }}
           {% else %}{{ name }} · day {{ (now().date() - planted.date()).days }}
