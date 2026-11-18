@@ -20,7 +20,7 @@ views:
             heading: Tent
             icon: mdi:tent
           - type: picture-elements
-            image: /local/attic_tent.svg?v=1
+            image: /local/attic_tent.svg?v=2
             grid_options:
               columns: full
             elements:
