@@ -19,7 +19,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import yaml
 
 SENSOR_KEY_RE = re.compile(r"^[a-z0-9_]+$")
-KNOWN_SENSOR_TYPES = frozenset({"simulated", "grove"})
+KNOWN_SENSOR_TYPES = frozenset({"simulated", "grove", "nano"})
 PLACEHOLDER_PASSWORDS = frozenset({"", "change-me"})
 
 

@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from collector.config import SensorSpec
 from collector.sensors.base import Sensor, SensorReadError
 from collector.sensors.grove import GroveSensor
+from collector.sensors.nano import NanoSensor
 from collector.sensors.simulated import SimulatedSensor
 
 __all__ = ["Sensor", "SensorReadError", "build_sensor"]
@@ -23,4 +24,6 @@ def build_sensor(
         return SimulatedSensor(spec, interval_seconds, tz, rng=rng)
     if spec.type == "grove":
         return GroveSensor(spec)
+    if spec.type == "nano":
+        return NanoSensor(spec)
     raise ValueError(f"Unknown sensor type: {spec.type}")

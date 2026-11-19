@@ -3,3 +3,5 @@ paho-mqtt==2.2.0
 PyYAML==6.0.3
 # Timezone database: Windows has none built in; harmless on the Pi.
 tzdata==2026.6
+# Serial link to the Arduino Nano sensor hub (latest stable, checked 2026-11-19).
+pyserial==3.5

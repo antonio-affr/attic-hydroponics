@@ -1,18 +1,13 @@
-# How much light each growing area gets, shown on the dashboard's tent drawing
-# as PPFD, the fourth value in the row above each tray.
+# How much light each growing area gets, as PPFD (µmol/m²/s): the fourth value
+# in the row above each tray on the dashboard's tent drawing.
 #
-# There is no light sensor yet (BH1750, one per tray, still to be wired), so
-# all three say "no sensor". When a sensor sends its lux reading, replace
-# that area's sensor with an approximate PPFD (µmol/m²/s), e.g.:
+# Source: the three BH1750 light sensors on the Arduino Nano, which measure
+# lux (sensor.attic_hydroponics_*_illuminance, published by the collector).
+# PPFD = lux / 54: a rough figure for white grow LEDs, good for comparing trays
+# and noticing a weak or dead light, not a calibrated PAR reading. Change 54
+# in all three if a calibrated meter ever says otherwise.
 #
-#   - name: Tray2Grow 1 light
-#     unique_id: attic_tray_light_tray2grow_1
-#     unit_of_measurement: "PPFD"   # µmol/m²/s; the short name fits the drawing
-#     state: "{{ (states('sensor.<the lux sensor>') | float(0) / 54) | round(0) }}"
-#     availability: "{{ has_value('sensor.<the lux sensor>') }}"
-#
-# The factor (lux / 54) is a rough figure for white grow LEDs: good for
-# comparing trays and noticing a weak light, not a calibrated PAR reading.
+# A sensor that is not wired or not answering makes its tray "unavailable".
 #
 # Loaded as a package (configuration.yaml: homeassistant > packages). Changing
 # this file needs a Home Assistant restart.
@@ -22,12 +17,21 @@ template:
       - name: Tray2Grow 1 light
         unique_id: attic_tray_light_tray2grow_1
         icon: mdi:white-balance-sunny
-        state: "no sensor"
+        unit_of_measurement: "PPFD"   # µmol/m²/s; the short name fits the drawing
+        state_class: measurement
+        state: "{{ (states('sensor.attic_hydroponics_tray2grow_1_illuminance') | float(0) / 54) | round(0) }}"
+        availability: "{{ has_value('sensor.attic_hydroponics_tray2grow_1_illuminance') }}"
       - name: Tray2Grow 2 light
         unique_id: attic_tray_light_tray2grow_2
         icon: mdi:white-balance-sunny
-        state: "no sensor"
+        unit_of_measurement: "PPFD"
+        state_class: measurement
+        state: "{{ (states('sensor.attic_hydroponics_tray2grow_2_illuminance') | float(0) / 54) | round(0) }}"
+        availability: "{{ has_value('sensor.attic_hydroponics_tray2grow_2_illuminance') }}"
       - name: Grow area 3 light
         unique_id: attic_tray_light_grow_area_3
         icon: mdi:white-balance-sunny
-        state: "no sensor"
+        unit_of_measurement: "PPFD"
+        state_class: measurement
+        state: "{{ (states('sensor.attic_hydroponics_grow_area_3_illuminance') | float(0) / 54) | round(0) }}"
+        availability: "{{ has_value('sensor.attic_hydroponics_grow_area_3_illuminance') }}"

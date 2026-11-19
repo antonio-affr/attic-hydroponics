@@ -45,3 +45,30 @@ Then, with the Nano plugged in (find its port with `board list`):
 - This Nano has the new bootloader (`cpu=atmega328`). An older board may need
   `cpu=atmega328old`.
 - Opening the serial port restarts the Nano, so `uptime_s` starts again.
+
+## How the readings reach Home Assistant
+
+The collector (`collector/sensors/nano.py`) keeps the Nano's port open, reads
+its JSON lines, and publishes four sensors like any other, at the collector's
+interval: `tray2grow_1_illuminance`, `tray2grow_2_illuminance`,
+`grow_area_3_illuminance` (lux) and `water_temperature` (°C). Home Assistant
+turns the lux into PPFD per tray (`homeassistant/config/packages/attic_tray_light.yaml`).
+A `null` field or a silent Nano (30 s) is not published, so that sensor goes
+Unavailable instead of showing a made-up value. The port is in the
+`type: nano` sensors of `config/collector.*.yaml`: `COM6` on the laptop,
+`/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_*` on the Pi.
+
+## Moving the Nano to the Pi
+
+1. `cd ~/attic-hydroponics && git pull`, then
+   `.venv/bin/pip install -r requirements.txt` (adds pyserial).
+2. `groups` must list `dialout` (it does by default on Raspberry Pi OS);
+   without it the collector logs "Permission denied" on the port.
+3. Plug the Nano into a Pi USB port. `ls /dev/serial/by-id/` shows
+   `usb-FTDI_FT232R_USB_UART_...`.
+4. `sudo systemctl restart attic-collector && docker compose restart homeassistant`.
+5. Check: `journalctl -u attic-collector -n 30` shows `Nano on ...: connected`
+   and, within one interval, `Published ... tray2grow_1_illuminance=...`.
+
+The collector can start before the Nano is plugged in: it retries the port
+every 5 seconds.

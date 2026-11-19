@@ -16,6 +16,9 @@ Sensors -> Python collector -> Mosquitto (MQTT) -> Home Assistant -> dashboard, 
   Bluetooth (docs/REAL_SENSORS.md, part 9c).
 - **Collector** (Python): reads the sensors, validates the values and publishes
   them with MQTT Discovery, so the sensors appear in Home Assistant by themselves.
+  It also reads the **Arduino Nano** sensor hub over USB: three light sensors
+  (one per tray, shown as PPFD) and the water temperature probe (nano/README.md,
+  docs/WIRING.md).
 
 The plan and the decisions behind it are in [PROJECT_BRIEF.md](PROJECT_BRIEF.md).
 Moving to the Raspberry Pi and the real sensors: [docs/REAL_SENSORS.md](docs/REAL_SENSORS.md).
@@ -115,8 +118,8 @@ Under each light the drawing shows whether it is on or off
 (`packages/attic_lights.yaml`); until the smart plug exists it says "no plug yet".
 
 Each tray's row of values ends with its light, as PPFD (µmol/m²/s, estimated
-from a lux sensor) (`packages/attic_tray_light.yaml`); until the BH1750 light
-sensors are wired it says "no sensor".
+from the Nano's lux sensors as lux / 54, `packages/attic_tray_light.yaml`). The
+water temperature shows under the Tank 1 level.
 
 ## Tests
 

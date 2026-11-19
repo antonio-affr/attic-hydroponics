@@ -77,3 +77,53 @@ sensors:
       refill_below: 30.0       # simulated top-up, so it never triggers the low-water alert by itself
       refill_to: 95.0
       noise: 0.2
+
+  # --- Arduino Nano sensor hub (nano/attic_nano/, wiring in docs/WIRING.md) ---
+  # Optional on the laptop: the real Nano on COM6 (Device Manager > Ports). Without
+  # it these four just log "cannot open the port" and stay unavailable.
+  # A sensor the Nano reports as null (loose wire) or a silent Nano is not
+  # published, so Home Assistant marks it stale. Light 1/2/3 were identified
+  # with a torch on 2026-11-19 (closest to farthest).
+  tray2grow_1_illuminance:
+    type: nano
+    name: Tray2Grow 1 illuminance
+    device_class: illuminance
+    unit: lx
+    precision: 0
+    valid_range: [0, 70000]    # BH1750 tops out at 65535 / 1.2 = 54612 lx
+    options:
+      port: COM6
+      field: light_1_lux       # light 1: A4/A5
+
+  tray2grow_2_illuminance:
+    type: nano
+    name: Tray2Grow 2 illuminance
+    device_class: illuminance
+    unit: lx
+    precision: 0
+    valid_range: [0, 70000]
+    options:
+      port: COM6
+      field: light_2_lux       # light 2: D2/D3
+
+  grow_area_3_illuminance:
+    type: nano
+    name: Grow area 3 illuminance
+    device_class: illuminance
+    unit: lx
+    precision: 0
+    valid_range: [0, 70000]
+    options:
+      port: COM6
+      field: light_3_lux       # light 3: D5/D6
+
+  water_temperature:
+    type: nano
+    name: Water temperature
+    device_class: temperature
+    unit: "°C"
+    precision: 1
+    valid_range: [0, 50]
+    options:
+      port: COM6
+      field: water_temperature_c   # DS18B20 on D4

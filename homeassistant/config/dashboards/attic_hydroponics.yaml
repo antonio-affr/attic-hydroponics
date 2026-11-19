@@ -44,10 +44,14 @@ views:
                 entity: binary_sensor.attic_hydroponics_collector
                 style: {left: 93.3%, top: 5.1%}
 
-              # Tank 1 (the reservoir level sensor; Tank 2 has none yet)
+              # Tank 1 (the reservoir level sensor; Tank 2 has none yet), and
+              # the water temperature probe on the Nano below it
               - <<: *value
                 entity: sensor.attic_hydroponics_reservoir_level
                 style: {<<: *text, left: 25%, top: 26.1%, color: "#6fdcff"}
+              - <<: *value
+                entity: sensor.attic_hydroponics_water_temperature
+                style: {<<: *text, left: 25%, top: 28.4%, font-size: 10.5px, color: "#ffb38a"}
 
               # T4 fan: icon, yellow when running (tap for speed and on/off),
               # and the speed below it
@@ -220,6 +224,18 @@ views:
             entity: sensor.attic_hydroponics_reservoir_level
             name: Reservoir level
           - type: tile
+            entity: sensor.attic_hydroponics_water_temperature
+            name: Water temperature
+          - type: tile
+            entity: sensor.tray2grow_1_light
+            name: Tray2Grow 1 light
+          - type: tile
+            entity: sensor.tray2grow_2_light
+            name: Tray2Grow 2 light
+          - type: tile
+            entity: sensor.grow_area_3_light
+            name: Grow area 3 light
+          - type: tile
             entity: binary_sensor.attic_hydroponics_collector
             name: Collector
 
@@ -304,6 +320,18 @@ views:
                 secondary_info: last-updated
               - entity: sensor.attic_hydroponics_reservoir_level
                 name: Reservoir level
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_water_temperature
+                name: Water temperature (Nano)
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_tray2grow_1_illuminance
+                name: Light 1, Tray2Grow 1 (Nano)
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_tray2grow_2_illuminance
+                name: Light 2, Tray2Grow 2 (Nano)
+                secondary_info: last-updated
+              - entity: sensor.attic_hydroponics_grow_area_3_illuminance
+                name: Light 3, Grow area 3 (Nano)
                 secondary_info: last-updated
           - type: markdown
             grid_options:
@@ -425,6 +453,35 @@ views:
               vegetative growth **0.8 to 1.2 kPa**, flowering **1.2 to 1.6 kPa**.
               Too low: slow growth and mould risk. Too high: the plants close up
               and stress. Lower it by raising humidity or lowering temperature.
+          - type: history-graph
+            title: Light per tray (PPFD, µmol/m²/s), last 48 hours
+            hours_to_show: 48
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.tray2grow_1_light
+                name: Tray2Grow 1
+              - entity: sensor.tray2grow_2_light
+                name: Tray2Grow 2
+              - entity: sensor.grow_area_3_light
+                name: Grow area 3
+          - type: markdown
+            grid_options:
+              columns: 12
+            content: >-
+              **PPFD** is the growing light reaching the plants right now,
+              estimated from the light sensors' lux (lux / 54, roughly ±20 %).
+              Leafy greens usually want **200 to 400** while the lights are on.
+              A tray far below the others under the same light means a weak or
+              dead light, or a sensor that has moved.
+          - type: history-graph
+            title: Water temperature, last 7 days
+            hours_to_show: 168
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.attic_hydroponics_water_temperature
+                name: Water
           - type: history-graph
             title: Reservoir level, last 7 days
             hours_to_show: 168
