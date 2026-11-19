@@ -1,0 +1,33 @@
+# How much light each growing area gets, shown on the dashboard's tent drawing
+# as PPFD, the fourth value in the row above each tray.
+#
+# There is no light sensor yet (BH1750, one per tray, still to be wired), so
+# all three say "no sensor". When a sensor sends its lux reading, replace
+# that area's sensor with an approximate PPFD (µmol/m²/s), e.g.:
+#
+#   - name: Tray2Grow 1 light
+#     unique_id: attic_tray_light_tray2grow_1
+#     unit_of_measurement: "PPFD"   # µmol/m²/s; the short name fits the drawing
+#     state: "{{ (states('sensor.<the lux sensor>') | float(0) / 54) | round(0) }}"
+#     availability: "{{ has_value('sensor.<the lux sensor>') }}"
+#
+# The factor (lux / 54) is a rough figure for white grow LEDs: good for
+# comparing trays and noticing a weak light, not a calibrated PAR reading.
+#
+# Loaded as a package (configuration.yaml: homeassistant > packages). Changing
+# this file needs a Home Assistant restart.
+
+template:
+  - sensor:
+      - name: Tray2Grow 1 light
+        unique_id: attic_tray_light_tray2grow_1
+        icon: mdi:white-balance-sunny
+        state: "no sensor"
+      - name: Tray2Grow 2 light
+        unique_id: attic_tray_light_tray2grow_2
+        icon: mdi:white-balance-sunny
+        state: "no sensor"
+      - name: Grow area 3 light
+        unique_id: attic_tray_light_grow_area_3
+        icon: mdi:white-balance-sunny
+        state: "no sensor"

@@ -20,7 +20,7 @@ views:
             heading: Tent
             icon: mdi:tent
           - type: picture-elements
-            image: /local/attic_tent.svg?v=6
+            image: /local/attic_tent.svg?v=7
             grid_options:
               columns: full
             elements:
@@ -76,27 +76,27 @@ views:
                 entity: sensor.light_2_status
                 style: {<<: *light, top: 57.5%}
 
-              # Box sensor (SHT3x), between light 1 and tray 1
+              # Box sensor (SHT3x), between light 1 and tray 1 (no caption on the drawing)
               - <<: *value
                 entity: sensor.attic_hydroponics_air_temperature
-                style: {<<: *text, left: 31.7%, top: 41.8%}
+                style: {<<: *text, left: 29%, top: 39.9%, font-size: 10.5px}
               - <<: *value
                 entity: sensor.attic_hydroponics_humidity
-                style: {<<: *text, left: 50%, top: 41.8%, color: "#8fd3ff"}
+                style: {<<: *text, left: 43%, top: 39.9%, font-size: 10.5px, color: "#8fd3ff"}
               - <<: *value
                 entity: sensor.box_vpd
-                style: {<<: *text, left: 68.3%, top: 41.8%, color: "#a5e8b0"}
+                style: {<<: *text, left: 57%, top: 39.9%, font-size: 10.5px, color: "#a5e8b0"}
 
               # T4 controller probe, between light 2 and tray 2
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
-                style: {<<: *text, left: 31.7%, top: 63.1%}
+                style: {<<: *text, left: 29%, top: 61.2%, font-size: 10.5px}
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
-                style: {<<: *text, left: 50%, top: 63.1%, color: "#8fd3ff"}
+                style: {<<: *text, left: 43%, top: 61.2%, font-size: 10.5px, color: "#8fd3ff"}
               - <<: *value
                 entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
-                style: {<<: *text, left: 68.3%, top: 63.1%, color: "#a5e8b0"}
+                style: {<<: *text, left: 57%, top: 61.2%, font-size: 10.5px, color: "#a5e8b0"}
 
               # What grows on each tray (packages/attic_plants.yaml), wrapped
               # inside the green tray
@@ -118,6 +118,19 @@ views:
               - <<: *value
                 entity: sensor.grow_area_3_plants
                 style: {<<: *plants, top: 92.7%}
+
+              # Light on each tray (packages/attic_tray_light.yaml: "no
+              # sensor" until wired), fourth in the row of box values; Grow
+              # area 3 has no sensor row, so it sits at the same height above it
+              - <<: *value
+                entity: sensor.tray2grow_1_light
+                style: &traylight {<<: *text, left: 71%, top: 39.9%, font-size: 10.5px, color: "#ffe08a"}
+              - <<: *value
+                entity: sensor.tray2grow_2_light
+                style: {<<: *traylight, top: 61.2%}
+              - <<: *value
+                entity: sensor.grow_area_3_light
+                style: {<<: *traylight, top: 82.6%}
 
       # --- Plants: what grows where (packages/attic_plants.yaml) ---------------
       - type: grid

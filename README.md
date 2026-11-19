@@ -114,6 +114,10 @@ which Home Assistant restores after a restart; it is not in git.
 Under each light the drawing shows whether it is on or off
 (`packages/attic_lights.yaml`); until the smart plug exists it says "no plug yet".
 
+Each tray's row of values ends with its light, as PPFD (µmol/m²/s, estimated
+from a lux sensor) (`packages/attic_tray_light.yaml`); until the BH1750 light
+sensors are wired it says "no sensor".
+
 ## Tests
 
 ```powershell
@@ -130,7 +134,7 @@ docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 docker-compose.bluetooth.yml  Pi only: Home Assistant gets the Pi's Bluetooth (enabled in .env)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights),
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights, tray light),
                             www/ (the tent drawing), custom_components/ac_infinity
                             (pinned, vendored); runtime state is git-ignored
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)
