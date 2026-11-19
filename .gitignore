@@ -38,3 +38,6 @@ __pycache__/
 .idea/
 Thumbs.db
 .DS_Store
+
+# Arduino CLI and its downloaded toolchain (see nano/README.md)
+/tools/arduino/
