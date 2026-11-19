@@ -4,11 +4,14 @@ An Arduino Nano (ATmega328P, FTDI FT232R USB chip) that collects the wired
 sensors and sends one JSON line per reading cycle over USB serial, 115200 baud:
 
 ```
-{"device":"attic_nano_01","uptime_s":12,"light_lux":48.3}
+{"device":"attic_nano_01","uptime_s":12,"light_lux":48.3,"water_temperature_c":22.25}
 ```
 
-Sensors so far: one BH1750 light sensor (see the top of the sketch for its
-wiring). A sensor that does not answer sends `null`, not 0.
+Sensors so far: one BH1750 light sensor and the DS18B20 water temperature
+probe (see the top of the sketch for their wiring). Sensor power goes
+through two WAGOs, one +5V and one GND; the signal wires go straight to the
+shield. The DS18B20 needs its 4.7 kOhm resistor from DATA to +5V: without
+it the line idles LOW and the probe is never found. A sensor that does not answer sends `null`, not 0.
 
 ## Upload the sketch (Windows)
 
@@ -21,6 +24,7 @@ unzip cli.zip arduino-cli.exe && rm cli.zip
 # arduino-cli.yaml: directories data/downloads/user pointing inside this folder
 ./arduino-cli.exe --config-file arduino-cli.yaml core update-index
 ./arduino-cli.exe --config-file arduino-cli.yaml core install arduino:avr
+./arduino-cli.exe --config-file arduino-cli.yaml lib install OneWire DallasTemperature
 ```
 
 Then, with the Nano plugged in (find its port with `board list`):
