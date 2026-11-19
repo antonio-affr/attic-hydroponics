@@ -8,7 +8,7 @@ Final set of sensors on the Nano:
 
 | Sensor | Quantity | Bus / pin | Status |
 |---|---|---|---|
-| BH1750 light (ARCELI dome) | 3, one per growing area | I2C through a TCA9548A hub | 1 tested on the desk; hub to buy |
+| BH1750 light (ARCELI dome) | 3, one per growing area | I2C, each on its own pair of pins | 1 tested on the desk |
 | DS18B20 water temperature (steel probe) | 1, in the tank | 1-Wire on D4 | tested on the desk |
 | Ultrasonic water height, on the tank lid | 1 | serial on D10 | exact model to confirm |
 
@@ -17,7 +17,9 @@ Final set of sensors on the Nano:
    Raspberry Pi  <--------------------------------  Nano + shield
                                                     |  5V    -> WAGO +5V  -> every sensor's VCC
                                                     |  GND   -> WAGO GND  -> every sensor's GND
-                                                    |  A4/A5 -> TCA9548A -> light 1, 2, 3
+                                                    |  A4/A5 -> light 1
+                                                    |  D2/D3 -> light 2
+                                                    |  D5/D6 -> light 3
                                                     |  D4    -> water temperature
                                                     |  D10   <- tank height
 ```
@@ -40,59 +42,45 @@ Rules:
 | **GND** | black | GND WAGO A, slot 1 |
 
 Each WAGO 221-415 has 5 slots: one wire in, four out. The final set needs
-**7 on each side**, so each side is two WAGOs joined by a short wire (A slot 5
-to B slot 1), which gives 7 free slots. A single 8-slot WAGO 221-418 per side
-does the same.
+**6 on the +5V side and 5 on GND**, so each side is two WAGOs joined by a short
+wire (A slot 5 to B slot 1), which gives 7 free slots. A single 8-slot WAGO
+221-418 per side does the same.
 
 | Slot | +5V side | GND side |
 |---|---|---|
 | A1 | feed from shield 5V | feed from shield GND |
-| A2 | TCA9548A hub VIN | TCA9548A hub GND |
-| A3 | light 1 red | light 1 black |
-| A4 | light 2 red | light 2 black |
+| A2 | light 1 red | light 1 black |
+| A3 | light 2 red | light 2 black |
+| A4 | light 3 red | light 3 black |
 | A5 | link wire to B1 | link wire to B1 |
-| B2 | light 3 red | light 3 black |
-| B3 | water probe red | water probe black |
-| B4 | 4.7 kOhm resistor, second leg | tank height sensor GND |
-| B5 | tank height sensor VCC | spare |
+| B2 | water probe red | water probe black |
+| B3 | 4.7 kOhm resistor, second leg | tank height sensor GND |
+| B4 | tank height sensor VCC | spare |
+| B5 | spare | spare |
 
-## 2. Light sensors (3 x BH1750) through the TCA9548A hub
+## 2. Light sensors (3 x BH1750)
 
 All three BH1750 answer at the same address (`0x23`), so they cannot share
-the bus directly. The hub gives each one its own channel, the same way the Pi
-already handles its two SHT3x. A second benefit: each sensor's cable is a
-separate short bus, which matters for the long runs up to the shelves.
+one bus. Instead each gets its own pair of Nano pins: light 1 on the Nano's
+hardware I2C (A4/A5), lights 2 and 3 on software I2C (D2/D3, D5/D6). No hub
+is needed, and each sensor's cable is a separate short bus, which matters for
+the long runs up to the shelves.
 
-Nano to hub:
+Wire colours on the ARCELI dome module, confirmed from the board's printed
+labels (1 VCC, 2 SCL, 3 DAT, 4 GND, 5 ADDR):
 
-| Shield | Hub (TCA9548A) |
-|---|---|
-| A4 (SDA) | SDA |
-| A5 (SCL) | SCL |
-| (WAGO +5V) | VIN |
-| (WAGO GND) | GND |
-| nothing | A0, A1, A2 (address stays `0x70`), RST |
+| Wire | Light 1 (Tray2Grow 1) | Light 2 (Tray2Grow 2) | Light 3 (Grow area 3) |
+|---|---|---|---|
+| red (VCC) | +5V WAGO | +5V WAGO | +5V WAGO |
+| black (GND) | GND WAGO | GND WAGO | GND WAGO |
+| white (SDA, "DAT") | shield **A4** | shield **D2** | shield **D5** |
+| brown (SCL) | shield **A5** | shield **D3** | shield **D6** |
+| yellow (ADDR) | nothing, taped | nothing, taped | nothing, taped |
 
-Each light sensor (ARCELI dome; wire colours confirmed from the board's
-printed labels):
-
-| Sensor pin | Wire | To |
-|---|---|---|
-| 1 VCC | red | +5V WAGO |
-| 2 SCL | brown | hub SC*n* |
-| 3 DAT (SDA) | white | hub SD*n* |
-| 4 GND | black | GND WAGO |
-| 5 ADDR | yellow | nothing, taped |
-
-| Sensor | Hub channel | Placed |
-|---|---|---|
-| Light 1 | SD0 / SC0 | Tray2Grow 1, middle, at plant height, dome facing up |
-| Light 2 | SD1 / SC1 | Tray2Grow 2, same |
-| Light 3 | SD2 / SC2 | Grow area 3, same |
+Each sits in the middle of its growing area, at plant height, dome facing up.
 
 Do **not** wire ADDR to 5V to get a second address: the BH1750 chip itself
-runs on about 3.3 V, and 5 V on that pin may exceed its rating. The hub makes
-it unnecessary.
+runs on about 3.3 V, and 5 V on that pin may exceed its rating.
 
 ## 3. Water temperature (DS18B20 probe)
 
@@ -129,7 +117,6 @@ yet.
 
 - Tested on the desk: light 1 (A4/A5 directly, before the hub), water
   temperature (D4), the WAGO power path.
-- To buy: one TCA9548A hub for the Nano; WAGOs for 7 slots per side (two more
-  221-415, or two 221-418).
+- To buy: WAGOs for 6 slots per side (two more 221-415, or two 221-418).
 - To confirm: the ultrasonic sensor's model and wires; the tank's inside
   dimensions; the cable length from the enclosure to each tray.
