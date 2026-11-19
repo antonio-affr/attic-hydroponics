@@ -142,6 +142,8 @@ config/                     collector profiles: simulator (30 s) and pi (5 min)
 deploy/                     systemd units for the Pi: collector service, 4G modem watchdog
 tools/modem_watchdog.py     reconnects (or restarts) the 4G modem when the internet drops
 docs/REAL_SENSORS.md        Pi and Grove sensor guide
+docs/WIRING.md              Arduino Nano sensor hub wiring (lights, water temperature, tank height)
+nano/                       the Nano sketch and how to upload it
 ```
 
 ## Security

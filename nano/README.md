@@ -7,6 +7,8 @@ sensors and sends one JSON line per reading cycle over USB serial, 115200 baud:
 {"device":"attic_nano_01","uptime_s":12,"light_lux":48.3,"water_temperature_c":22.25}
 ```
 
+Full wiring plan: [docs/WIRING.md](../docs/WIRING.md).
+
 Sensors so far: one BH1750 light sensor and the DS18B20 water temperature
 probe (see the top of the sketch for their wiring). Sensor power goes
 through two WAGOs, one +5V and one GND; the signal wires go straight to the
