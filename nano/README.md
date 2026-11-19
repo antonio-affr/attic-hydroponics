@@ -4,10 +4,11 @@ An Arduino Nano (ATmega328P, FTDI FT232R USB chip) that collects the wired
 sensors and sends one JSON line per reading cycle over USB serial, 115200 baud:
 
 ```
-{"device":"attic_nano_01","uptime_s":12}
+{"device":"attic_nano_01","uptime_s":12,"light_lux":48.3}
 ```
 
-So far it only sends this heartbeat; sensors are added one at a time.
+Sensors so far: one BH1750 light sensor (see the top of the sketch for its
+wiring). A sensor that does not answer sends `null`, not 0.
 
 ## Upload the sketch (Windows)
 
