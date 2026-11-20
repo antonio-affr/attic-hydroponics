@@ -83,7 +83,7 @@ views:
 
               # Each tray's own Xiaomi thermometer (packages/attic_climate.yaml):
               # temperature, humidity, VPD, then the light further right. The
-              # box sensor and the T4 controller probe are in the Stats tab.
+              # box sensor is under Alerts & system, the T4 probe under Water & air.
               - <<: *value
                 entity: sensor.tray2grow_1_air_temperature
                 style: &rowtemp {<<: *text, left: 29%, top: 39.9%, font-size: 10.5px}
@@ -204,11 +204,220 @@ views:
               To correct a plant, remove it and add it again. With no date
               picked, a new plant counts as planted today.
 
-  # Tab 2: everything in numbers, one section per part of the setup.
-  - title: Stats
-    path: stats
+  # Tab 2: one section per growing area.
+  - title: Trays
+    path: trays
     type: sections
     max_columns: 3
+    sections:
+      # --- One section per growing area (packages/attic_climate.yaml and
+      # packages/attic_tray_light.yaml) ---------------------------------------
+      - type: grid
+        cards:
+          - type: heading
+            heading: Tray2Grow 1
+            icon: mdi:sprout
+          - type: tile
+            entity: sensor.tray2grow_1_air_temperature
+            name: Temperature
+          - type: tile
+            entity: sensor.tray2grow_1_air_humidity
+            name: Humidity
+          - type: tile
+            entity: sensor.tray2grow_1_vpd
+            name: VPD
+          - type: tile
+            entity: sensor.tray2grow_1_light
+            name: Light
+          - type: history-graph
+            title: Last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.tray2grow_1_air_temperature
+                name: Temperature
+              - entity: sensor.tray2grow_1_air_humidity
+                name: Humidity
+              - entity: sensor.tray2grow_1_vpd
+                name: VPD
+              - entity: sensor.tray2grow_1_light
+                name: Light
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Tray2Grow 2
+            icon: mdi:sprout
+          - type: tile
+            entity: sensor.tray2grow_2_air_temperature
+            name: Temperature
+          - type: tile
+            entity: sensor.tray2grow_2_air_humidity
+            name: Humidity
+          - type: tile
+            entity: sensor.tray2grow_2_vpd
+            name: VPD
+          - type: tile
+            entity: sensor.tray2grow_2_light
+            name: Light
+          - type: history-graph
+            title: Last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.tray2grow_2_air_temperature
+                name: Temperature
+              - entity: sensor.tray2grow_2_air_humidity
+                name: Humidity
+              - entity: sensor.tray2grow_2_vpd
+                name: VPD
+              - entity: sensor.tray2grow_2_light
+                name: Light
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Grow area 3
+            icon: mdi:sprout
+          - type: tile
+            entity: sensor.grow_area_3_air_temperature
+            name: Temperature
+          - type: tile
+            entity: sensor.grow_area_3_air_humidity
+            name: Humidity
+          - type: tile
+            entity: sensor.grow_area_3_vpd
+            name: VPD
+          - type: tile
+            entity: sensor.grow_area_3_light
+            name: Light
+          - type: history-graph
+            title: Last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.grow_area_3_air_temperature
+                name: Temperature
+              - entity: sensor.grow_area_3_air_humidity
+                name: Humidity
+              - entity: sensor.grow_area_3_vpd
+                name: VPD
+              - entity: sensor.grow_area_3_light
+                name: Light
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Reading the tray numbers
+            icon: mdi:information-outline
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              **VPD** (vapour pressure deficit, kPa) is how strongly the air
+              pulls water from the leaves, from each tray's temperature and
+              humidity. Seedlings and clones **0.4 to 0.8**, vegetative growth
+              **0.8 to 1.2**, flowering **1.2 to 1.6**. Too low: slow growth and
+              mould risk; too high: the plants close up and stress.
+
+
+              **Light** is PPFD (µmol/m²/s), estimated from the light sensors'
+              lux (lux / 54, roughly ±20 %). Leafy greens want **200 to 400**
+              while the lights are on. A tray far below the others under the
+              same lights means a weak light or a sensor that has moved.
+
+  # Tab 3: the water tanks and the T4 fan.
+  - title: Water & air
+    path: water-air
+    type: sections
+    max_columns: 2
+    sections:
+      # --- Water tanks: level and temperature --------------------------------
+      - type: grid
+        cards:
+          - type: heading
+            heading: Water tanks
+            icon: mdi:water
+          - type: tile
+            entity: sensor.attic_hydroponics_reservoir_level
+            name: Tank 1 level
+          - type: tile
+            entity: sensor.attic_hydroponics_water_temperature
+            name: Tank 1 water temperature
+          - type: history-graph
+            title: Tank 1, last 7 days
+            hours_to_show: 168
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.attic_hydroponics_reservoir_level
+                name: Level
+              - entity: sensor.attic_hydroponics_water_temperature
+                name: Water temperature
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              The water temperature comes from the probe on the Nano. The level
+              is still simulated until the tank height sensor is fitted; Tank 2
+              has no sensors yet. Nutrient water is best at **18 to 22 °C**:
+              warmer holds less oxygen and invites root rot.
+
+      # --- Fan: the T4 and its AC Infinity Controller 69 Pro (Bluetooth, Pi only)
+      # Entities come from the ac_infinity integration (REAL_SENSORS.md part 9c);
+      # on the laptop they do not exist and the cards show "not available".
+      - type: grid
+        cards:
+          - type: heading
+            heading: Fan
+            icon: mdi:fan
+          - type: tile
+            entity: fan.attic_controller_69_pro_g_sp7n7_port_1_fan
+            name: T4 fan
+            grid_options:
+              columns: full
+            features:
+              - type: fan-speed
+          - type: tile
+            entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
+            name: Controller temperature
+          - type: tile
+            entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
+            name: Controller humidity
+          - type: tile
+            entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
+            name: Controller VPD
+          - type: history-graph
+            title: Fan and controller probe, last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: fan.attic_controller_69_pro_g_sp7n7_port_1_fan
+                name: T4 fan
+              - entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
+                name: Temperature
+              - entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
+                name: Humidity
+              - entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
+                name: VPD
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              Read from the controller's own probe over Bluetooth. Turning the
+              fan **off** keeps the controller's saved minimum speed, so it may
+              still turn slowly. The controller keeps running its own program
+              if the Pi is off.
+
+  # Tab 4: electricity, and the attic around the tent.
+  - title: Power & outside
+    path: power-outside
+    type: sections
+    max_columns: 2
     sections:
       # --- Electric: the General plug and the grow lights (packages/attic_electric.yaml)
       - type: grid
@@ -325,200 +534,12 @@ views:
               Last photo: **{{ as_timestamp(ts) | timestamp_custom('%d %b, %H:%M') if ts else 'none yet' }}**
               (one every 10 minutes). NoIR camera: pinkish colours are normal.
 
-      # --- Fan: the T4 and its AC Infinity Controller 69 Pro (Bluetooth, Pi only)
-      # Entities come from the ac_infinity integration (REAL_SENSORS.md part 9c);
-      # on the laptop they do not exist and the cards show "not available".
-      - type: grid
-        cards:
-          - type: heading
-            heading: Fan
-            icon: mdi:fan
-          - type: tile
-            entity: fan.attic_controller_69_pro_g_sp7n7_port_1_fan
-            name: T4 fan
-            grid_options:
-              columns: full
-            features:
-              - type: fan-speed
-          - type: tile
-            entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
-            name: Controller temperature
-          - type: tile
-            entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
-            name: Controller humidity
-          - type: tile
-            entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
-            name: Controller VPD
-          - type: history-graph
-            title: Fan and controller probe, last 24 hours
-            hours_to_show: 24
-            grid_options:
-              columns: full
-            entities:
-              - entity: fan.attic_controller_69_pro_g_sp7n7_port_1_fan
-                name: T4 fan
-              - entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
-                name: Temperature
-              - entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
-                name: Humidity
-              - entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
-                name: VPD
-          - type: markdown
-            grid_options:
-              columns: full
-            content: >-
-              Read from the controller's own probe over Bluetooth. Turning the
-              fan **off** keeps the controller's saved minimum speed, so it may
-              still turn slowly. The controller keeps running its own program
-              if the Pi is off.
-
-      # --- Water tanks: level and temperature --------------------------------
-      - type: grid
-        cards:
-          - type: heading
-            heading: Water tanks
-            icon: mdi:water
-          - type: tile
-            entity: sensor.attic_hydroponics_reservoir_level
-            name: Tank 1 level
-          - type: tile
-            entity: sensor.attic_hydroponics_water_temperature
-            name: Tank 1 water temperature
-          - type: history-graph
-            title: Tank 1, last 7 days
-            hours_to_show: 168
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.attic_hydroponics_reservoir_level
-                name: Level
-              - entity: sensor.attic_hydroponics_water_temperature
-                name: Water temperature
-          - type: markdown
-            grid_options:
-              columns: full
-            content: >-
-              The water temperature comes from the probe on the Nano. The level
-              is still simulated until the tank height sensor is fitted; Tank 2
-              has no sensors yet. Nutrient water is best at **18 to 22 °C**:
-              warmer holds less oxygen and invites root rot.
-
-      # --- One section per growing area (packages/attic_climate.yaml and
-      # packages/attic_tray_light.yaml) ---------------------------------------
-      - type: grid
-        cards:
-          - type: heading
-            heading: Tray2Grow 1
-            icon: mdi:sprout
-          - type: tile
-            entity: sensor.tray2grow_1_air_temperature
-            name: Temperature
-          - type: tile
-            entity: sensor.tray2grow_1_air_humidity
-            name: Humidity
-          - type: tile
-            entity: sensor.tray2grow_1_vpd
-            name: VPD
-          - type: tile
-            entity: sensor.tray2grow_1_light
-            name: Light
-          - type: history-graph
-            title: Last 24 hours
-            hours_to_show: 24
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.tray2grow_1_air_temperature
-                name: Temperature
-              - entity: sensor.tray2grow_1_air_humidity
-                name: Humidity
-              - entity: sensor.tray2grow_1_vpd
-                name: VPD
-              - entity: sensor.tray2grow_1_light
-                name: Light
-      - type: grid
-        cards:
-          - type: heading
-            heading: Tray2Grow 2
-            icon: mdi:sprout
-          - type: tile
-            entity: sensor.tray2grow_2_air_temperature
-            name: Temperature
-          - type: tile
-            entity: sensor.tray2grow_2_air_humidity
-            name: Humidity
-          - type: tile
-            entity: sensor.tray2grow_2_vpd
-            name: VPD
-          - type: tile
-            entity: sensor.tray2grow_2_light
-            name: Light
-          - type: history-graph
-            title: Last 24 hours
-            hours_to_show: 24
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.tray2grow_2_air_temperature
-                name: Temperature
-              - entity: sensor.tray2grow_2_air_humidity
-                name: Humidity
-              - entity: sensor.tray2grow_2_vpd
-                name: VPD
-              - entity: sensor.tray2grow_2_light
-                name: Light
-      - type: grid
-        cards:
-          - type: heading
-            heading: Grow area 3
-            icon: mdi:sprout
-          - type: tile
-            entity: sensor.grow_area_3_air_temperature
-            name: Temperature
-          - type: tile
-            entity: sensor.grow_area_3_air_humidity
-            name: Humidity
-          - type: tile
-            entity: sensor.grow_area_3_vpd
-            name: VPD
-          - type: tile
-            entity: sensor.grow_area_3_light
-            name: Light
-          - type: history-graph
-            title: Last 24 hours
-            hours_to_show: 24
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.grow_area_3_air_temperature
-                name: Temperature
-              - entity: sensor.grow_area_3_air_humidity
-                name: Humidity
-              - entity: sensor.grow_area_3_vpd
-                name: VPD
-              - entity: sensor.grow_area_3_light
-                name: Light
-      - type: grid
-        cards:
-          - type: heading
-            heading: Reading the tray numbers
-            icon: mdi:information-outline
-          - type: markdown
-            grid_options:
-              columns: full
-            content: >-
-              **VPD** (vapour pressure deficit, kPa) is how strongly the air
-              pulls water from the leaves, from each tray's temperature and
-              humidity. Seedlings and clones **0.4 to 0.8**, vegetative growth
-              **0.8 to 1.2**, flowering **1.2 to 1.6**. Too low: slow growth and
-              mould risk; too high: the plants close up and stress.
-
-
-              **Light** is PPFD (µmol/m²/s), estimated from the light sensors'
-              lux (lux / 54, roughly ±20 %). Leafy greens want **200 to 400**
-              while the lights are on. A tray far below the others under the
-              same lights means a weak light or a sensor that has moved.
-
+  # Tab 5: alerts, thresholds, and whether everything reports.
+  - title: Alerts & system
+    path: alerts-system
+    type: sections
+    max_columns: 2
+    sections:
       # --- Alerts and their thresholds (packages/attic_alerts.yaml) ----------
       - type: grid
         cards:

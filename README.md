@@ -104,11 +104,18 @@ Unavailable until the next cycle.
 
 ## Tent drawing and plants
 
-The dashboard has two tabs: **Tent** (the drawing and the plants, where it opens)
-and **Stats**, one section per part of the setup: Electric (power, cost per day and month from
-the General plug, the lights' on/off history), Outside (attic and camera), Fan, Water tanks,
-one per growing area, Alerts and thresholds, and System (last reading per sensor, thermometer
-batteries). The electricity price per kWh is set there (`packages/attic_electric.yaml`). Tent shows a drawing of the tent
+The dashboard has five tabs:
+
+- **Tent** (where it opens): the drawing and the plants.
+- **Trays**: temperature, humidity, VPD and light per growing area, with graphs.
+- **Water & air**: the water tanks and the T4 fan.
+- **Power & outside**: power and cost per day and month from the General plug,
+  the lights' on/off history, the attic around the tent and the camera. The
+  electricity price per kWh is set there (`packages/attic_electric.yaml`).
+- **Alerts & system**: alerts and their thresholds, the last reading of each
+  sensor, the thermometer batteries.
+
+Tent shows a drawing of the tent
 (`homeassistant/config/www/attic_tent.svg`) with live values on top of it, placed
 by percentage in the dashboard file. After editing the drawing, bump `?v=` in its
 URL there, or phones keep showing the old one.
@@ -127,7 +134,7 @@ thermometer (`packages/attic_climate.yaml`), and the top line the Xiaomi
 outside the tent. The Xiaomi and the plugs are found by their **device name**
 in Home Assistant (`custom_templates/attic.jinja`), so name them "Tray2Grow 1",
 "Tray2Grow 2", "Grow area 3", "Outside" and "Lights". The box sensor and the T4
-controller probe stay in the Stats tab. The row ends with the tray's light, as PPFD (µmol/m²/s, estimated
+controller probe are in the other tabs. The row ends with the tray's light, as PPFD (µmol/m²/s, estimated
 from the Nano's lux sensors as lux / 54, `packages/attic_tray_light.yaml`). The
 water temperature shows under the Tank 1 level.
 

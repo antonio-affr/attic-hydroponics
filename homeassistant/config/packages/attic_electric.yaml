@@ -6,7 +6,7 @@
 # these sensors keep working whatever entity ids Home Assistant gave them.
 #
 # Cost = energy since midnight (or since the 1st) x the price per kWh, which is
-# a helper editable on the dashboard (Stats > Electric). It starts at 0 until
+# a helper editable on the dashboard (Power & outside > Electric). It starts at 0 until
 # you set it from the electricity bill.
 #
 # Loaded as a package (configuration.yaml: homeassistant > packages). Changing
