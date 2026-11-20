@@ -127,7 +127,10 @@ attributes of `sensor.attic_plants` (`homeassistant/config/packages/attic_plants
 which Home Assistant restores after a restart; it is not in git.
 
 Under each light the drawing shows whether it is on or off, from the "Lights"
-plug (`packages/attic_lights.yaml`, read-only: no switch on the dashboard).
+plug (`packages/attic_lights.yaml`, read-only: no switch on the drawing). The
+lights **schedule** (on time, off time, and a switch to follow it) is set in
+**Power & outside**; while it is on, Home Assistant keeps the plug to it,
+checking every 5 minutes.
 
 Each tray's row shows the temperature, humidity and VPD from that tray's Xiaomi
 thermometer (`packages/attic_climate.yaml`), and the top line the Xiaomi

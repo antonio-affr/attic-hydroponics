@@ -454,6 +454,19 @@ views:
           - type: tile
             entity: sensor.grow_lights_power
             name: Grow lights power
+          - type: entities
+            title: Lights schedule
+            grid_options:
+              columns: full
+            entities:
+              - entity: input_boolean.attic_lights_schedule
+                name: Follow the schedule
+              - entity: input_datetime.attic_lights_on
+                name: Lights on at
+              - entity: input_datetime.attic_lights_off
+                name: Lights off at
+              - entity: sensor.lights_hours_per_day
+                name: Hours of light per day
           - type: history-graph
             title: Lights schedule (on / off) and power, last 48 hours
             hours_to_show: 48
@@ -484,7 +497,13 @@ views:
               Read from the **General** plug, which feeds everything, and the
               **Lights** plug. The cost is the energy used today (or this
               month) times the price above: set it once from the electricity
-              bill. Neither plug can be switched from here, on purpose.
+              bill.
+
+
+              **Schedule:** set the on and off times, then turn on *Follow the
+              schedule*. While it is on, the lights are kept to the schedule
+              (checked every 5 minutes), so to switch them by hand turn it off
+              first. Leafy greens usually get **14 to 16 hours** a day.
 
       # --- Outside: the attic around the tent, and the camera ---------------
       - type: grid

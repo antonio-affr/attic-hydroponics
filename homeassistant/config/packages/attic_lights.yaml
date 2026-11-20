@@ -1,18 +1,43 @@
-# The grow lights' on/off status, shown on the dashboard's tent drawing under
-# "Light 1" and "Light 2".
+# The grow lights: their on/off status on the tent drawing, and the schedule
+# that switches them.
 #
-# Both read the SwitchBot Plug Mini named "Lights" (MAC ...72:9E), which feeds
-# all the tubes, so they always show the same state. The plug is found by its
-# device name in Home Assistant (Settings > Devices > SwitchBot Bluetooth; any
-# name containing "light" matches, see custom_templates/attic.jinja), so
-# renaming its entities never breaks it.
+# Both "Light 1" and "Light 2" read the SwitchBot Plug Mini named "Lights"
+# (MAC ...72:9E), which feeds all the tubes, so they always show the same
+# state. The plug is found by its device name in Home Assistant (Settings >
+# Devices > SwitchBot Bluetooth; any name containing "light" matches, see
+# custom_templates/attic.jinja), so renaming its entities never breaks it.
 #
-# Read-only on purpose: the drawing shows the state but has no switch, so a tap
-# never turns the lights off. The "General" plug (...96:7A) is not on the
-# dashboard at all: it may feed the Pi itself.
+# Schedule: on time, off time and an on/off switch for the schedule itself,
+# all editable on the dashboard (Power & outside > Electric). While the
+# schedule is on, Home Assistant switches the plug at those times, puts it
+# back right after a restart, and every 5 minutes corrects it if it is in the
+# wrong state (a missed Bluetooth command, or a manual switch in the SwitchBot
+# app). To switch the lights by hand for a while, turn the schedule off first.
+# The off time may be after midnight (on 18:00, off 02:00 works). Equal times
+# do nothing.
+#
+# The drawing never shows a switch, so a tap cannot turn the lights off. The
+# "General" plug (...96:7A) is not on the dashboard at all: it may feed the Pi.
 #
 # Loaded as a package (configuration.yaml: homeassistant > packages). Changing
 # this file needs a Home Assistant restart.
+
+input_boolean:
+  attic_lights_schedule:
+    name: Lights schedule
+    icon: mdi:calendar-clock
+
+input_datetime:
+  attic_lights_on:
+    name: Lights on at
+    icon: mdi:weather-sunset-up
+    has_date: false
+    has_time: true
+  attic_lights_off:
+    name: Lights off at
+    icon: mdi:weather-sunset-down
+    has_date: false
+    has_time: true
 
 template:
   - sensor:
@@ -30,3 +55,60 @@ template:
         unique_id: attic_light_2_status
         icon: mdi:led-strip
         state: *plug_state
+      - name: Lights hours per day
+        unique_id: attic_lights_hours_per_day
+        icon: mdi:timer-outline
+        unit_of_measurement: h
+        state: >-
+          {% set on = today_at(states('input_datetime.attic_lights_on')) %}
+          {% set off = today_at(states('input_datetime.attic_lights_off')) %}
+          {% set h = ((off - on).total_seconds() / 3600) % 24 %}
+          {{ h | round(1) }}
+
+automation:
+  - id: attic_lights_schedule
+    alias: "Grow lights: follow the schedule"
+    description: >-
+      Switches the "Lights" plug at the on and off times while the schedule is
+      on. Also runs at start-up, when the times or the switch change, and every
+      5 minutes, so the plug always ends up where the schedule says.
+    mode: queued
+    max: 5
+    triggers:
+      - trigger: time
+        at: input_datetime.attic_lights_on
+      - trigger: time
+        at: input_datetime.attic_lights_off
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id:
+          - input_boolean.attic_lights_schedule
+          - input_datetime.attic_lights_on
+          - input_datetime.attic_lights_off
+      - trigger: time_pattern
+        minutes: "/5"
+    variables:
+      plug: >-
+        {% from 'attic.jinja' import find %}{{ find('switchbot', 'light', 'switch') }}
+      on_at: "{{ states('input_datetime.attic_lights_on') }}"
+      off_at: "{{ states('input_datetime.attic_lights_off') }}"
+      # "HH:MM:SS" strings compare in time order. on < off: on during the day;
+      # on > off: the on period runs past midnight.
+      wanted: >-
+        {%- set t = now().strftime('%H:%M:%S') -%}
+        {%- if on_at < off_at -%}{{ 'on' if on_at <= t < off_at else 'off' }}
+        {%- else -%}{{ 'on' if t >= on_at or t < off_at else 'off' }}{%- endif -%}
+    conditions:
+      - condition: state
+        entity_id: input_boolean.attic_lights_schedule
+        state: "on"
+      - condition: template
+        value_template: "{{ plug != '' and on_at != off_at }}"
+      # Only act when the plug is in the wrong state (and reachable).
+      - condition: template
+        value_template: "{{ states(plug) in ['on', 'off'] and states(plug) != wanted }}"
+    actions:
+      - action: "switch.turn_{{ wanted }}"
+        target:
+          entity_id: "{{ plug }}"
