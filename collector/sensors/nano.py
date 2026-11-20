@@ -44,6 +44,10 @@ BAUD_RATE = 115200
 DEFAULT_MAX_AGE_SECONDS = 30.0
 REOPEN_DELAY_SECONDS = 5.0
 READ_TIMEOUT_SECONDS = 3.0
+# Opening the port restarts the Nano, which sends its first line about 2 s
+# later. A reading asked for in the first seconds after start waits for it, so
+# a collector restart does not lose its first round.
+STARTUP_WAIT_SECONDS = 8.0
 
 
 class LineSource(Protocol):
@@ -85,9 +89,12 @@ class NanoLink:
         self._latest_at: float | None = None
         self._thread: threading.Thread | None = None
         self._stop = threading.Event()
+        self._first_line = threading.Event()
+        self._started_at: float | None = None
 
     def start(self) -> None:
         if self._thread is None:
+            self._started_at = time.monotonic()
             self._thread = threading.Thread(target=self._run, name=f"nano {self.port}", daemon=True)
             self._thread.start()
 
@@ -104,6 +111,15 @@ class NanoLink:
             with self._lock:
                 self._latest = data
                 self._latest_at = self._clock()
+            self._first_line.set()
+
+    def wait_for_first_line(self) -> None:
+        """Just after start, wait (at most STARTUP_WAIT_SECONDS) for the Nano's first line."""
+        if self._started_at is None:
+            return
+        left = STARTUP_WAIT_SECONDS - (time.monotonic() - self._started_at)
+        if left > 0:
+            self._first_line.wait(left)
 
     def latest(self) -> tuple[dict[str, Any] | None, float | None]:
         """The latest line and its age in seconds (None, None before the first one)."""
@@ -172,6 +188,9 @@ class NanoSensor(Sensor):
 
     def read(self) -> float:
         data, age = self.link.latest()
+        if data is None:
+            self.link.wait_for_first_line()
+            data, age = self.link.latest()
         if data is None or age is None:
             raise SensorReadError(f"no data from the Nano on {self.link.port} yet")
         if age > self.max_age_seconds:

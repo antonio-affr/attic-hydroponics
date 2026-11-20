@@ -25,10 +25,11 @@ views:
               columns: full
             elements:
               # Values: plain coloured text, no frame (temperature orange,
-              # humidity blue, VPD green, water cyan). Attic, outside the tent:
+              # humidity blue, VPD green, water cyan). Attic, outside the tent
+              # (the "Outside" Xiaomi, packages/attic_climate.yaml):
               - &value
                 type: state-label
-                entity: sensor.attic_hydroponics_attic_temperature
+                entity: sensor.attic_outside_air_temperature
                 style: &text
                   left: 55%
                   top: 5.1%
@@ -38,7 +39,7 @@ views:
                   white-space: nowrap
                   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9)
               - <<: *value
-                entity: sensor.attic_hydroponics_attic_humidity
+                entity: sensor.attic_outside_air_humidity
                 style: {<<: *text, left: 73.3%, color: "#8fd3ff"}
               - type: state-icon
                 entity: binary_sensor.attic_hydroponics_collector
@@ -64,8 +65,8 @@ views:
                 suffix: " %"
                 style: {<<: *text, left: 80%, top: 24.7%, color: "#e8f0f2"}
 
-              # Lights on/off, under the "LIGHT 1" / "LIGHT 2" labels
-              # (packages/attic_lights.yaml: "no plug yet" until the plug exists)
+              # Lights on/off, under the "LIGHT 1" / "LIGHT 2" labels: the
+              # "Lights" SwitchBot plug, read-only (packages/attic_lights.yaml)
               - <<: *value
                 entity: sensor.light_1_status
                 style: &light
@@ -80,27 +81,38 @@ views:
                 entity: sensor.light_2_status
                 style: {<<: *light, top: 57.5%}
 
-              # Box sensor (SHT3x), between light 1 and tray 1 (no caption on the drawing)
+              # Each tray's own Xiaomi thermometer (packages/attic_climate.yaml):
+              # temperature, humidity, VPD, then the light further right. The
+              # box sensor and the T4 controller probe are in the Stats tab.
               - <<: *value
-                entity: sensor.attic_hydroponics_air_temperature
-                style: {<<: *text, left: 29%, top: 39.9%, font-size: 10.5px}
+                entity: sensor.tray2grow_1_air_temperature
+                style: &rowtemp {<<: *text, left: 29%, top: 39.9%, font-size: 10.5px}
               - <<: *value
-                entity: sensor.attic_hydroponics_humidity
-                style: {<<: *text, left: 43%, top: 39.9%, font-size: 10.5px, color: "#8fd3ff"}
+                entity: sensor.tray2grow_1_air_humidity
+                style: &rowhum {<<: *text, left: 43%, top: 39.9%, font-size: 10.5px, color: "#8fd3ff"}
               - <<: *value
-                entity: sensor.box_vpd
-                style: {<<: *text, left: 57%, top: 39.9%, font-size: 10.5px, color: "#a5e8b0"}
+                entity: sensor.tray2grow_1_vpd
+                style: &rowvpd {<<: *text, left: 57%, top: 39.9%, font-size: 10.5px, color: "#a5e8b0"}
 
-              # T4 controller probe, between light 2 and tray 2
               - <<: *value
-                entity: sensor.attic_controller_69_pro_g_sp7n7_temperature
-                style: {<<: *text, left: 29%, top: 61.2%, font-size: 10.5px}
+                entity: sensor.tray2grow_2_air_temperature
+                style: {<<: *rowtemp, top: 61.2%}
               - <<: *value
-                entity: sensor.attic_controller_69_pro_g_sp7n7_humidity
-                style: {<<: *text, left: 43%, top: 61.2%, font-size: 10.5px, color: "#8fd3ff"}
+                entity: sensor.tray2grow_2_air_humidity
+                style: {<<: *rowhum, top: 61.2%}
               - <<: *value
-                entity: sensor.attic_controller_69_pro_g_sp7n7_vpd
-                style: {<<: *text, left: 57%, top: 61.2%, font-size: 10.5px, color: "#a5e8b0"}
+                entity: sensor.tray2grow_2_vpd
+                style: {<<: *rowvpd, top: 61.2%}
+
+              - <<: *value
+                entity: sensor.grow_area_3_air_temperature
+                style: {<<: *rowtemp, top: 82.6%}
+              - <<: *value
+                entity: sensor.grow_area_3_air_humidity
+                style: {<<: *rowhum, top: 82.6%}
+              - <<: *value
+                entity: sensor.grow_area_3_vpd
+                style: {<<: *rowvpd, top: 82.6%}
 
               # What grows on each tray (packages/attic_plants.yaml), wrapped
               # inside the green tray
@@ -123,9 +135,8 @@ views:
                 entity: sensor.grow_area_3_plants
                 style: {<<: *plants, top: 92.7%}
 
-              # Light on each tray (packages/attic_tray_light.yaml: "no
-              # sensor" until wired), fourth in the row of box values; Grow
-              # area 3 has no sensor row, so it sits at the same height above it
+              # Light on each tray (packages/attic_tray_light.yaml), fourth in
+              # each tray's row
               - <<: *value
                 entity: sensor.tray2grow_1_light
                 style: &traylight {<<: *text, left: 71%, top: 39.9%, font-size: 10.5px, color: "#ffe08a"}
@@ -238,6 +249,46 @@ views:
           - type: tile
             entity: binary_sensor.attic_hydroponics_collector
             name: Collector
+
+      # --- Per growing area: the Xiaomi thermometers (packages/attic_climate.yaml)
+      - type: grid
+        cards:
+          - type: heading
+            heading: Growing areas
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.tray2grow_1_air_temperature
+            name: Tray2Grow 1 temperature
+          - type: tile
+            entity: sensor.tray2grow_1_air_humidity
+            name: Tray2Grow 1 humidity
+          - type: tile
+            entity: sensor.tray2grow_1_vpd
+            name: Tray2Grow 1 VPD
+          - type: tile
+            entity: sensor.tray2grow_2_air_temperature
+            name: Tray2Grow 2 temperature
+          - type: tile
+            entity: sensor.tray2grow_2_air_humidity
+            name: Tray2Grow 2 humidity
+          - type: tile
+            entity: sensor.tray2grow_2_vpd
+            name: Tray2Grow 2 VPD
+          - type: tile
+            entity: sensor.grow_area_3_air_temperature
+            name: Grow area 3 temperature
+          - type: tile
+            entity: sensor.grow_area_3_air_humidity
+            name: Grow area 3 humidity
+          - type: tile
+            entity: sensor.grow_area_3_vpd
+            name: Grow area 3 VPD
+          - type: tile
+            entity: sensor.attic_outside_air_temperature
+            name: Attic (outside) temperature
+          - type: tile
+            entity: sensor.attic_outside_air_humidity
+            name: Attic (outside) humidity
 
       # --- T4 fan: the AC Infinity Controller 69 Pro, over Bluetooth (Pi only) --
       # Entities come from the ac_infinity integration (REAL_SENSORS.md part 9c);
@@ -409,6 +460,46 @@ views:
           - type: heading
             heading: History
             icon: mdi:chart-line
+          - type: history-graph
+            title: Temperature per growing area (Xiaomi), last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.tray2grow_1_air_temperature
+                name: Tray2Grow 1
+              - entity: sensor.tray2grow_2_air_temperature
+                name: Tray2Grow 2
+              - entity: sensor.grow_area_3_air_temperature
+                name: Grow area 3
+              - entity: sensor.attic_outside_air_temperature
+                name: Attic (outside)
+          - type: history-graph
+            title: Humidity per growing area (Xiaomi), last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.tray2grow_1_air_humidity
+                name: Tray2Grow 1
+              - entity: sensor.tray2grow_2_air_humidity
+                name: Tray2Grow 2
+              - entity: sensor.grow_area_3_air_humidity
+                name: Grow area 3
+              - entity: sensor.attic_outside_air_humidity
+                name: Attic (outside)
+          - type: history-graph
+            title: VPD (kPa) per growing area, last 24 hours
+            hours_to_show: 24
+            grid_options:
+              columns: 12
+            entities:
+              - entity: sensor.tray2grow_1_vpd
+                name: Tray2Grow 1
+              - entity: sensor.tray2grow_2_vpd
+                name: Tray2Grow 2
+              - entity: sensor.grow_area_3_vpd
+                name: Grow area 3
           - type: history-graph
             title: Temperature, box vs attic vs T4 controller, last 24 hours
             hours_to_show: 24

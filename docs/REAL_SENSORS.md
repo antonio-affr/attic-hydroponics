@@ -447,6 +447,47 @@ Assistant downloads the library `ac-infinity-ble` (needs the internet).
 **Check:** the device page shows temperature, humidity and VPD close to the
 controller's screen.
 
+## 9d. Xiaomi thermometers and SwitchBot plugs (Bluetooth)
+
+**Xiaomi LYWSD03MMC (QBH4312GL).** Their own firmware encrypts the readings
+with a key tied to a Xiaomi account. Instead, each one gets the community
+**pvvx ATC** firmware, which broadcasts plain **BTHome**: Home Assistant finds
+it by itself, with no key and no account, and a reading arrives every 10 s.
+Done once per sensor, from a laptop or phone with Chrome or Edge:
+
+1. Add the sensor in the **Xiaomi Home** app (needed once: firmware
+   2.1.1_0159 only unlocks for a registered sensor). Then close the app and
+   turn the phone's Bluetooth off, or it holds the sensor.
+2. Run **Xiaomi Cloud Tokens Extractor** (`token_extractor.exe` from
+   github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor), log in with **q**
+   (QR code, scanned in Xiaomi Home), Enter at the server question. Each sensor
+   is listed with its MAC, **ID**, **TOKEN** and **BLE KEY**.
+3. Open https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html,
+   **Connect** (the sensor shows as LYWSD03MMC), paste ID, TOKEN and BLE KEY
+   into Device known id, Mi Token and Mi Bind Key, **Login**: "Login
+   successful". (Login here unlocks the sensor; it is not a Xiaomi login.)
+4. **Custom Firmware: ATC_v59.bin**, **Start Flashing**, wait for "Update done".
+5. Turn the laptop's Bluetooth off and on (Windows keeps the old name and
+   firmware version), **Connect**: it is now **ATC_xxxxxx**, firmware V5.9. If
+   it is still LYWSD03MMC / 2.1.1_0159, flash
+   **Original_OTA_Xiaomi_LYWSD03MMC_v2.1.1_0159c.bin** first, then Login and
+   ATC_v59 again (needed for the first sensor, not for the others).
+6. Check **Advertising type: BTHome v2** (the default), **Disconnect**. Put a
+   sticker on it with the last 4 characters of its MAC.
+
+On the Pi: Settings → Devices & services → **Discovered: ATC xxxx (BTHome)** →
+**Add**, then rename each **device** by where it sits: "Tray2Grow 1",
+"Tray2Grow 2", "Grow area 3", "Outside". The dashboard finds them by that name
+(`packages/attic_climate.yaml`). To tell them apart, breathe on one: its
+humidity jumps within 20 s.
+
+**SwitchBot Plug Mini (EU).** Set up in the SwitchBot app, then on the Pi:
+**Discovered: Plug Mini (EU)** → **Add** → **SwitchBot account** (fetches the
+plug's encryption key once). Name the devices **Lights** (...72:9E, the grow
+lights) and **General** (...96:7A, power use). Close the SwitchBot app while
+Home Assistant connects. The General plug is kept off the dashboard on
+purpose: it may feed the Pi itself.
+
 ## 10. Day-to-day
 
 | Task | Command (on the Pi, in `~/attic-hydroponics`) |
@@ -467,9 +508,6 @@ Upgrading Mosquitto or Home Assistant is deliberate: change the pinned tag in
 
 ## Later (not needed on the Pi day)
 
-- **Xiaomi Bluetooth sensors (QBH4312GL):** Home Assistant already has the
-  Pi's Bluetooth (part 9c). Test one sensor before buying more; newer models
-  need an encryption key from the Xiaomi account.
 - **Real reservoir sensor:** change `reservoir_level` to the new sensor type in
   `config/collector.pi.yaml`. Dashboard and topics stay the same.
 - **Backups:** copy `homeassistant/config/` (with HA stopped) and `.env`

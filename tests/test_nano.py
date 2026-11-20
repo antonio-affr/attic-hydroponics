@@ -136,4 +136,35 @@ def test_background_thread_reads_and_survives_a_disconnect(clock: FakeClock) -> 
         assert NanoSensor(spec("light_2_lux"), link).read() == 41.7
     finally:
         link.stop()
+    # The thread closes the port just after the error, so give it a moment.
+    for _ in range(100):
+        if sources and sources[0].closed:
+            break
+        threading.Event().wait(0.02)
     assert sources and sources[0].closed
+
+
+def test_first_reading_waits_for_the_nanos_first_line(clock: FakeClock) -> None:
+    """A reading right after start waits for the Nano (it restarts when the port opens)."""
+
+    class SlowNano:
+        def __init__(self) -> None:
+            self.sent = False
+
+        def readline(self) -> bytes:
+            if not self.sent:
+                self.sent = True
+                threading.Event().wait(0.5)  # the Nano booting
+                return REAL_LINE
+            threading.Event().wait(0.05)
+            return b""
+
+        def close(self) -> None:
+            pass
+
+    link = NanoLink("COM_TEST", opener=lambda port: SlowNano(), clock=clock)
+    link.start()
+    try:
+        assert NanoSensor(spec("light_1_lux"), link).read() == 46.7
+    finally:
+        link.stop()

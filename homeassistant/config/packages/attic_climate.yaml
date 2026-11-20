@@ -1,0 +1,141 @@
+# Temperature, humidity and VPD per growing area, from the Xiaomi Bluetooth
+# thermometers (LYWSD03MMC with the pvvx ATC firmware, broadcasting BTHome,
+# read by the Pi's Bluetooth; docs/REAL_SENSORS.md). One more Xiaomi hangs in
+# the attic outside the tent.
+#
+# Each sensor finds its Xiaomi by the DEVICE NAME given in Home Assistant
+# (Settings > Devices > BTHome), so renaming entities never breaks it:
+#   Tray2Grow 1 / Tray2Grow 2 / Grow area 3 / Outside
+# (case, spaces and dashes do not matter; see custom_templates/attic.jinja for
+# the exact patterns). A Xiaomi not found, or silent, shows "Unavailable".
+#
+# VPD (kPa) per area, same formula as Box VPD in configuration.yaml:
+#   saturation vapour pressure (Tetens) = 0.61078 * e^(17.27 T / (T + 237.3))
+#   VPD = saturation pressure * (1 - RH / 100)
+#
+# Loaded as a package (configuration.yaml: homeassistant > packages). Changing
+# this file needs a Home Assistant restart.
+
+template:
+  - sensor:
+      - name: Tray2Grow 1 air temperature
+        unique_id: attic_climate_tray2grow_1_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'temperature') %}
+          {{ states(e) | float | round(1) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'temperature') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Tray2Grow 1 air humidity
+        unique_id: attic_climate_tray2grow_1_humidity
+        device_class: humidity
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'humidity') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'humidity') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Tray2Grow 1 VPD
+        unique_id: attic_climate_tray2grow_1_vpd
+        unit_of_measurement: kPa
+        device_class: pressure
+        state_class: measurement
+        icon: mdi:water-thermometer
+        availability: "{{ has_value('sensor.tray2grow_1_air_temperature') and has_value('sensor.tray2grow_1_air_humidity') }}"
+        state: >-
+          {% set t = states('sensor.tray2grow_1_air_temperature') | float %}
+          {% set rh = states('sensor.tray2grow_1_air_humidity') | float %}
+          {{ (0.61078 * e ** (17.27 * t / (t + 237.3)) * (1 - rh / 100)) | round(2) }}
+      - name: Tray2Grow 2 air temperature
+        unique_id: attic_climate_tray2grow_2_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'temperature') %}
+          {{ states(e) | float | round(1) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'temperature') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Tray2Grow 2 air humidity
+        unique_id: attic_climate_tray2grow_2_humidity
+        device_class: humidity
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'humidity') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'humidity') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Tray2Grow 2 VPD
+        unique_id: attic_climate_tray2grow_2_vpd
+        unit_of_measurement: kPa
+        device_class: pressure
+        state_class: measurement
+        icon: mdi:water-thermometer
+        availability: "{{ has_value('sensor.tray2grow_2_air_temperature') and has_value('sensor.tray2grow_2_air_humidity') }}"
+        state: >-
+          {% set t = states('sensor.tray2grow_2_air_temperature') | float %}
+          {% set rh = states('sensor.tray2grow_2_air_humidity') | float %}
+          {{ (0.61078 * e ** (17.27 * t / (t + 237.3)) * (1 - rh / 100)) | round(2) }}
+      - name: Grow area 3 air temperature
+        unique_id: attic_climate_grow_area_3_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'temperature') %}
+          {{ states(e) | float | round(1) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'temperature') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Grow area 3 air humidity
+        unique_id: attic_climate_grow_area_3_humidity
+        device_class: humidity
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'humidity') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'humidity') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Grow area 3 VPD
+        unique_id: attic_climate_grow_area_3_vpd
+        unit_of_measurement: kPa
+        device_class: pressure
+        state_class: measurement
+        icon: mdi:water-thermometer
+        availability: "{{ has_value('sensor.grow_area_3_air_temperature') and has_value('sensor.grow_area_3_air_humidity') }}"
+        state: >-
+          {% set t = states('sensor.grow_area_3_air_temperature') | float %}
+          {% set rh = states('sensor.grow_area_3_air_humidity') | float %}
+          {{ (0.61078 * e ** (17.27 * t / (t + 237.3)) * (1 - rh / 100)) | round(2) }}
+      - name: Attic outside air temperature
+        unique_id: attic_climate_attic_outside_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'temperature') %}
+          {{ states(e) | float | round(1) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'temperature') %}
+          {{ has_value(e) and states(e) | is_number }}
+      - name: Attic outside air humidity
+        unique_id: attic_climate_attic_outside_humidity
+        device_class: humidity
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'humidity') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'humidity') %}
+          {{ has_value(e) and states(e) | is_number }}

@@ -12,8 +12,10 @@ Sensors -> Python collector -> Mosquitto (MQTT) -> Home Assistant -> dashboard, 
   It also computes the box **VPD** (vapour pressure deficit, kPa) from the box
   temperature and humidity: a template sensor in `homeassistant/config/configuration.yaml`.
   And it sends the **alerts** to the phone app (see below).
-  On the Pi it also reads the T4 fan's **AC Infinity Controller 69 Pro** over
-  Bluetooth (docs/REAL_SENSORS.md, part 9c).
+  On the Pi it also reads, over Bluetooth (docs/REAL_SENSORS.md, parts 9c and 9d),
+  the T4 fan's **AC Infinity Controller 69 Pro**, one **Xiaomi thermometer** per
+  growing area plus one outside the tent, and the **SwitchBot plugs** ("Lights"
+  for the grow lights, "General" for the power use).
 - **Collector** (Python): reads the sensors, validates the values and publishes
   them with MQTT Discovery, so the sensors appear in Home Assistant by themselves.
   It also reads the **Arduino Nano** sensor hub over USB: three light sensors
@@ -114,10 +116,15 @@ tray on the drawing lists its plants as "Basil · day 12". The list lives in the
 attributes of `sensor.attic_plants` (`homeassistant/config/packages/attic_plants.yaml`),
 which Home Assistant restores after a restart; it is not in git.
 
-Under each light the drawing shows whether it is on or off
-(`packages/attic_lights.yaml`); until the smart plug exists it says "no plug yet".
+Under each light the drawing shows whether it is on or off, from the "Lights"
+plug (`packages/attic_lights.yaml`, read-only: no switch on the dashboard).
 
-Each tray's row of values ends with its light, as PPFD (µmol/m²/s, estimated
+Each tray's row shows the temperature, humidity and VPD from that tray's Xiaomi
+thermometer (`packages/attic_climate.yaml`), and the top line the Xiaomi
+outside the tent. The Xiaomi and the plugs are found by their **device name**
+in Home Assistant (`custom_templates/attic.jinja`), so name them "Tray2Grow 1",
+"Tray2Grow 2", "Grow area 3", "Outside" and "Lights". The box sensor and the T4
+controller probe stay in the Stats tab. The row ends with the tray's light, as PPFD (µmol/m²/s, estimated
 from the Nano's lux sensors as lux / 54, `packages/attic_tray_light.yaml`). The
 water temperature shows under the Tank 1 level.
 
@@ -137,7 +144,8 @@ docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 docker-compose.bluetooth.yml  Pi only: Home Assistant gets the Pi's Bluetooth (enabled in .env)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights, tray light),
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights, tray light,
+                            climate), custom_templates/ (find a device by its name),
                             www/ (the tent drawing), custom_components/ac_infinity
                             (pinned, vendored); runtime state is git-ignored
 collector/                  the Python collector (config, sensors/, camera, publisher, main loop)

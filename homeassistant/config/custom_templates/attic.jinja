@@ -1,0 +1,25 @@
+{#- Finds one entity of a device by the device's name, so the packages do not
+    depend on the entity ids Home Assistant generated for the Xiaomi sensors
+    and the SwitchBot plugs (those ids change whenever a device is renamed).
+
+    find(integration, pattern, domain, device_class) returns the entity id, or
+    '' when nothing matches (states('') is "unknown", has_value('') is false).
+    pattern is a regular expression, matched against the device name (the name
+    given in Home Assistant, else the original one) in lower case with spaces,
+    underscores and dashes removed: "Tray2Grow 1" becomes "tray2grow1".
+
+    Used by packages/attic_climate.yaml and packages/attic_lights.yaml as
+      {% from 'attic.jinja' import find %}
+    Changing this file needs a Home Assistant restart. -#}
+{% macro find(integration, pattern, domain, device_class=none) -%}
+{%- set ns = namespace(id='') -%}
+{%- for e in integration_entities(integration) -%}
+{%- if ns.id == '' and e.startswith(domain ~ '.')
+      and (device_class is none or state_attr(e, 'device_class') == device_class) -%}
+{%- set n = (device_attr(e, 'name_by_user') or device_attr(e, 'name') or '')
+            | lower | replace(' ', '') | replace('_', '') | replace('-', '') -%}
+{%- if n is search(pattern) %}{% set ns.id = e %}{% endif -%}
+{%- endif -%}
+{%- endfor -%}
+{{ ns.id }}
+{%- endmacro %}
