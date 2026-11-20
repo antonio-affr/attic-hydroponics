@@ -105,7 +105,10 @@ Unavailable until the next cycle.
 ## Tent drawing and plants
 
 The dashboard has two tabs: **Tent** (the drawing and the plants, where it opens)
-and **Stats** (current values, T4 fan, camera, status, alerts, history). Tent shows a drawing of the tent
+and **Stats**, one section per part of the setup: Electric (power, cost per day and month from
+the General plug, the lights' on/off history), Outside (attic and camera), Fan, Water tanks,
+one per growing area, Alerts and thresholds, and System (last reading per sensor, thermometer
+batteries). The electricity price per kWh is set there (`packages/attic_electric.yaml`). Tent shows a drawing of the tent
 (`homeassistant/config/www/attic_tent.svg`) with live values on top of it, placed
 by percentage in the dashboard file. After editing the drawing, bump `?v=` in its
 URL there, or phones keep showing the old one.
@@ -144,7 +147,7 @@ docker-compose.yml          Mosquitto + Home Assistant (pinned versions)
 docker-compose.bluetooth.yml  Pi only: Home Assistant gets the Pi's Bluetooth (enabled in .env)
 .env.example                template for .env (passwords, bind addresses); .env is git-ignored
 mosquitto/config/           broker settings; passwd is generated and git-ignored
-homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights, tray light,
+homeassistant/config/       configuration.yaml, dashboards/, packages/ (alerts, plants, lights, tray light, electric,
                             climate), custom_templates/ (find a device by its name),
                             www/ (the tent drawing), custom_components/ac_infinity
                             (pinned, vendored); runtime state is git-ignored

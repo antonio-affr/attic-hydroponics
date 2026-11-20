@@ -141,3 +141,47 @@ template:
         availability: >-
           {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'humidity') %}
           {{ has_value(e) and states(e) | is_number }}
+      - name: Tray2Grow 1 thermometer battery
+        unique_id: attic_climate_tray2grow_1_battery
+        device_class: battery
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|t2g1|^tray1$', 'sensor', 'battery') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|t2g1|^tray1$', 'sensor', 'battery') %}
+          {{ states(e) | is_number }}
+      - name: Tray2Grow 2 thermometer battery
+        unique_id: attic_climate_tray2grow_2_battery
+        device_class: battery
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|t2g2|^tray2$', 'sensor', 'battery') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|t2g2|^tray2$', 'sensor', 'battery') %}
+          {{ states(e) | is_number }}
+      - name: Grow area 3 thermometer battery
+        unique_id: attic_climate_grow_area_3_battery
+        device_class: battery
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|ga3|^tray3$', 'sensor', 'battery') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|ga3|^tray3$', 'sensor', 'battery') %}
+          {{ states(e) | is_number }}
+      - name: Attic outside thermometer battery
+        unique_id: attic_climate_attic_outside_battery
+        device_class: battery
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'battery') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'battery') %}
+          {{ states(e) | is_number }}

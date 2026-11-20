@@ -1,0 +1,112 @@
+# Electricity: what the setup draws and what it costs, from the SwitchBot Plug
+# Mini (EU) named "General" (...96:7A), which feeds everything; plus the power
+# the grow lights draw, from the plug named "Lights" (...72:9E).
+#
+# The plugs are found by their device name (custom_templates/attic.jinja), so
+# these sensors keep working whatever entity ids Home Assistant gave them.
+#
+# Cost = energy since midnight (or since the 1st) x the price per kWh, which is
+# a helper editable on the dashboard (Stats > Electric). It starts at 0 until
+# you set it from the electricity bill.
+#
+# Loaded as a package (configuration.yaml: homeassistant > packages). Changing
+# this file needs a Home Assistant restart.
+
+input_number:
+  attic_electricity_price:
+    name: Electricity price
+    icon: mdi:currency-eur
+    min: 0
+    max: 1
+    step: 0.001
+    unit_of_measurement: "€/kWh"
+    mode: box
+
+utility_meter:
+  # Energy since midnight / since the 1st of the month, from the General plug.
+  electric_energy_today:
+    unique_id: attic_electric_energy_today
+    name: Electric energy today
+    source: sensor.electric_energy
+    cycle: daily
+  electric_energy_month:
+    unique_id: attic_electric_energy_month
+    name: Electric energy this month
+    source: sensor.electric_energy
+    cycle: monthly
+
+template:
+  - sensor:
+      - name: Electric power
+        unique_id: attic_electric_power
+        device_class: power
+        unit_of_measurement: W
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'power') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'power') %}
+          {{ states(e) | is_number }}
+      - name: Electric energy
+        unique_id: attic_electric_energy
+        device_class: energy
+        unit_of_measurement: kWh
+        state_class: total_increasing
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'energy') %}
+          {{ states(e) | float | round(3) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'energy') %}
+          {{ states(e) | is_number }}
+      - name: Electric voltage
+        unique_id: attic_electric_voltage
+        device_class: voltage
+        unit_of_measurement: V
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'voltage') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'voltage') %}
+          {{ states(e) | is_number }}
+      - name: Electric current
+        unique_id: attic_electric_current
+        device_class: current
+        unit_of_measurement: A
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'current') %}
+          {{ states(e) | float | round(2) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'general', 'sensor', 'current') %}
+          {{ states(e) | is_number }}
+      - name: Grow lights power
+        unique_id: attic_grow_lights_power
+        device_class: power
+        unit_of_measurement: W
+        state_class: measurement
+        state: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'light', 'sensor', 'power') %}
+          {{ states(e) | float | round(0) }}
+        availability: >-
+          {% from 'attic.jinja' import find %}{% set e = find('switchbot', 'light', 'sensor', 'power') %}
+          {{ states(e) | is_number }}
+      - name: Electric cost today
+        unique_id: attic_electric_cost_today
+        device_class: monetary
+        unit_of_measurement: EUR
+        icon: mdi:currency-eur
+        availability: "{{ states('sensor.electric_energy_today') | is_number }}"
+        state: >-
+          {{ (states('sensor.electric_energy_today') | float(0)
+              * states('input_number.attic_electricity_price') | float(0)) | round(2) }}
+      - name: Electric cost this month
+        unique_id: attic_electric_cost_month
+        device_class: monetary
+        unit_of_measurement: EUR
+        icon: mdi:currency-eur
+        availability: "{{ states('sensor.electric_energy_month') | is_number }}"
+        state: >-
+          {{ (states('sensor.electric_energy_month') | float(0)
+              * states('input_number.attic_electricity_price') | float(0)) | round(2) }}
