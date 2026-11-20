@@ -5,7 +5,9 @@
 #
 # Each sensor finds its Xiaomi by the DEVICE NAME given in Home Assistant
 # (Settings > Devices > BTHome), so renaming entities never breaks it:
-#   Tray2Grow 1 / Tray2Grow 2 / Grow area 3 / Outside
+#   Tray2Grow 1 / Tray2Grow 2 / Grow area 3 / Outside, or short forms such as
+#   "Thermo T2G 1" / "Thermo T2G 2" / "Thermo GA 3" / "Thermo Attic" (the
+#   names in use on the Pi)
 # (case, spaces and dashes do not matter; see custom_templates/attic.jinja for
 # the exact patterns). A Xiaomi not found, or silent, shows "Unavailable".
 #
@@ -24,10 +26,10 @@ template:
         unit_of_measurement: "°C"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|t2g1|^tray1$', 'sensor', 'temperature') %}
           {{ states(e) | float | round(1) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|t2g1|^tray1$', 'sensor', 'temperature') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Tray2Grow 1 air humidity
         unique_id: attic_climate_tray2grow_1_humidity
@@ -35,10 +37,10 @@ template:
         unit_of_measurement: "%"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|t2g1|^tray1$', 'sensor', 'humidity') %}
           {{ states(e) | float | round(0) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|^tray1$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow1|t2g1|^tray1$', 'sensor', 'humidity') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Tray2Grow 1 VPD
         unique_id: attic_climate_tray2grow_1_vpd
@@ -57,10 +59,10 @@ template:
         unit_of_measurement: "°C"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|t2g2|^tray2$', 'sensor', 'temperature') %}
           {{ states(e) | float | round(1) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|t2g2|^tray2$', 'sensor', 'temperature') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Tray2Grow 2 air humidity
         unique_id: attic_climate_tray2grow_2_humidity
@@ -68,10 +70,10 @@ template:
         unit_of_measurement: "%"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|t2g2|^tray2$', 'sensor', 'humidity') %}
           {{ states(e) | float | round(0) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|^tray2$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'tray2grow2|t2g2|^tray2$', 'sensor', 'humidity') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Tray2Grow 2 VPD
         unique_id: attic_climate_tray2grow_2_vpd
@@ -90,10 +92,10 @@ template:
         unit_of_measurement: "°C"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|ga3|^tray3$', 'sensor', 'temperature') %}
           {{ states(e) | float | round(1) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|ga3|^tray3$', 'sensor', 'temperature') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Grow area 3 air humidity
         unique_id: attic_climate_grow_area_3_humidity
@@ -101,10 +103,10 @@ template:
         unit_of_measurement: "%"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|ga3|^tray3$', 'sensor', 'humidity') %}
           {{ states(e) | float | round(0) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|^tray3$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'growarea3|area3|ga3|^tray3$', 'sensor', 'humidity') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Grow area 3 VPD
         unique_id: attic_climate_grow_area_3_vpd
@@ -123,10 +125,10 @@ template:
         unit_of_measurement: "°C"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'temperature') %}
           {{ states(e) | float | round(1) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'temperature') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'temperature') %}
           {{ has_value(e) and states(e) | is_number }}
       - name: Attic outside air humidity
         unique_id: attic_climate_attic_outside_humidity
@@ -134,8 +136,8 @@ template:
         unit_of_measurement: "%"
         state_class: measurement
         state: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'humidity') %}
           {{ states(e) | float | round(0) }}
         availability: >-
-          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|^attic$|^room$', 'sensor', 'humidity') %}
+          {% from 'attic.jinja' import find %}{% set e = find('bthome', 'outside|outdoor|attic|room', 'sensor', 'humidity') %}
           {{ has_value(e) and states(e) | is_number }}
