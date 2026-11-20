@@ -114,8 +114,9 @@ sensors:
   # --- Arduino Nano sensor hub (nano/attic_nano/, wiring in docs/WIRING.md) ---
   # The Nano on any of the Pi's USB ports; the by-id name survives replugging.
   # A sensor the Nano reports as null (loose wire) or a silent Nano is not
-  # published, so Home Assistant marks it stale. Light 1/2/3 were identified
-  # with a torch on 2026-11-19 (closest to farthest).
+  # published, so Home Assistant marks it stale. In the attic the cables on
+  # A4/A5 and D2/D3 ended up on each other's tray (seen 2026-11-20), so
+  # Tray2Grow 1 reads light_2 and Tray2Grow 2 reads light_1.
   tray2grow_1_illuminance:
     type: nano
     name: Tray2Grow 1 illuminance
@@ -125,7 +126,7 @@ sensors:
     valid_range: [0, 70000]    # BH1750 tops out at 65535 / 1.2 = 54612 lx
     options:
       port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_*"
-      field: light_1_lux       # light 1: A4/A5
+      field: light_2_lux       # cable on D2/D3
 
   tray2grow_2_illuminance:
     type: nano
@@ -136,7 +137,7 @@ sensors:
     valid_range: [0, 70000]
     options:
       port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_*"
-      field: light_2_lux       # light 2: D2/D3
+      field: light_1_lux       # cable on A4/A5
 
   grow_area_3_illuminance:
     type: nano

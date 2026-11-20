@@ -69,7 +69,7 @@ the long runs up to the shelves.
 Wire colours on the ARCELI dome module, confirmed from the board's printed
 labels (1 VCC, 2 SCL, 3 DAT, 4 GND, 5 ADDR):
 
-| Wire | Light 1 (Tray2Grow 1) | Light 2 (Tray2Grow 2) | Light 3 (Grow area 3) |
+| Wire | Light 1 (sits on Tray2Grow 2) | Light 2 (sits on Tray2Grow 1) | Light 3 (Grow area 3) |
 |---|---|---|---|
 | red (VCC) | +5V WAGO | +5V WAGO | +5V WAGO |
 | black (GND) | GND WAGO | GND WAGO | GND WAGO |
@@ -78,6 +78,10 @@ labels (1 VCC, 2 SCL, 3 DAT, 4 GND, 5 ADDR):
 | yellow (ADDR) | nothing, taped | nothing, taped | nothing, taped |
 
 Each sits in the middle of its growing area, at plant height, dome facing up.
+In the attic, lights 1 and 2 ended up on each other's tray; rather than
+rewiring, `config/collector.pi.yaml` maps Tray2Grow 1 to `light_2_lux` and
+Tray2Grow 2 to `light_1_lux`. If you ever move them back, swap those two
+`field:` lines too.
 
 Do **not** wire ADDR to 5V to get a second address: the BH1750 chip itself
 runs on about 3.3 V, and 5 V on that pin may exceed its rating.
