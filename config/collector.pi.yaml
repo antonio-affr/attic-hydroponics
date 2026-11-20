@@ -3,9 +3,12 @@
 
 timezone: Europe/Lisbon
 
-# Default 5 minutes. Lower it (e.g. 60) here or with --interval; stale
-# detection follows automatically: 300 s x 2.5 = 750 s (12.5 minutes).
-interval_seconds: 300
+# 30 seconds, so the tray light (PPFD) follows a change of the lights quickly.
+# Everything stays on the Pi (collector -> local broker -> Home Assistant), so
+# this costs no 4G data. Stale detection follows automatically:
+# 30 s x 2.5 = 75 s. The Xiaomi thermometers do not depend on it (they
+# broadcast on their own every few seconds).
+interval_seconds: 30
 stale_after_factor: 2.5
 
 mqtt:

@@ -7,7 +7,7 @@ What changes compared with Windows:
 
 - The same `docker-compose.yml` runs Mosquitto and Home Assistant on the Pi.
 - The collector runs directly on the Pi (not in Docker), as a systemd service,
-  with `config/collector.pi.yaml` (interval 5 minutes, stale after 12.5 minutes).
+  with `config/collector.pi.yaml` (interval 30 seconds, stale after 75 seconds).
 - Air temperature and humidity come from the Grove sensor; the reservoir level
   stays simulated until there is hardware for it.
 - Tonight's history stays on the laptop. The Pi starts with empty history.
@@ -258,7 +258,7 @@ systemctl status attic-collector
 
 **Check:**
 
-- `journalctl -u attic-collector -f` shows readings every 5 minutes;
+- `journalctl -u attic-collector -f` shows readings every 30 seconds;
 - `sudo reboot` → after a few minutes the dashboard updates again by itself;
 - pull the power for a second → same result (Mosquitto and HA have
   `restart: unless-stopped`, the collector has `Restart=always`).
